@@ -1,0 +1,24 @@
+{
+  "name": "racetrack-info-screens",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "npm run start -w server",
+    "dev": "concurrently \"npm run dev -w server\" \"npm run dev -w client\"",
+    "build": "npm run build -w shared && npm run build -w server && npm run build -w client"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://gitea.kood.tech/kadikerner/info-screens.git"
+  },
+  "license": "ISC",
+  "type": "commonjs",
+  "private": true,
+  "workspaces": [
+    "server",
+    "client",
+    "shared"
+  ],
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
