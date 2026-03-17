@@ -1,4 +1,5 @@
 import 'dotenv/config'
+import { DEV_RACE_DURATION_SECONDS, PROD_RACE_DURATION_SECONDS } from '@shared/constants'
 
 export interface ServerEnv {
   port: number
@@ -26,7 +27,7 @@ export function loadEnv(): ServerEnv {
     receptionistKey,
     safetyKey,
     observerKey,
-    raceDurationSeconds: process.env.RACE_DEV_MODE === 'true' ? 60 : 600,
+    raceDurationSeconds: process.env.RACE_DEV_MODE === 'true' ? DEV_RACE_DURATION_SECONDS : PROD_RACE_DURATION_SECONDS,
   }
 }
 
