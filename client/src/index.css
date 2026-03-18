@@ -63,3 +63,133 @@ h2 {
   font-weight: 700;
   cursor: pointer;
 }
+
+.muted {
+  color: #52617a;
+}
+
+.error-message {
+  color: #b42318;
+  background: #fef3f2;
+  border: 1px solid #fecdca;
+  border-radius: 10px;
+  padding: 0.65rem 0.75rem;
+}
+
+.front-desk-header {
+  margin-bottom: 1rem;
+}
+
+.session-create-form {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.65rem;
+  margin-bottom: 1rem;
+}
+
+.session-create-form input,
+.driver-editor input {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid #c8d4e6;
+  border-radius: 10px;
+}
+
+.session-create-form button,
+.driver-editor button,
+.driver-actions button,
+.session-header button {
+  padding: 0.6rem 0.8rem;
+  border: 1px solid #2f5ed6;
+  border-radius: 10px;
+  background: #2f5ed6;
+  color: #ffffff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.session-list {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.session-card {
+  border: 1px solid #d8e2f0;
+  border-radius: 12px;
+  padding: 0.9rem;
+  display: grid;
+  gap: 0.8rem;
+}
+
+.session-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.session-header h3 {
+  margin: 0;
+}
+
+.driver-editor {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 0.5rem;
+}
+
+.driver-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.driver-card {
+  border: 1px solid #d7dfed;
+  border-radius: 10px;
+  padding: 0.6rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.driver-main {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.driver-actions {
+  display: flex;
+  gap: 0.4rem;
+}
+
+button.ghost {
+  background: #ffffff;
+  color: #2f5ed6;
+}
+
+button.danger {
+  background: #b42318;
+  border-color: #b42318;
+  color: #ffffff;
+}
+
+@media (max-width: 700px) {
+  .session-create-form,
+  .driver-editor {
+    grid-template-columns: 1fr;
+  }
+
+  .session-header,
+  .driver-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .driver-actions {
+    justify-content: flex-end;
+  }
+}

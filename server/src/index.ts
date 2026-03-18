@@ -8,6 +8,7 @@ import { Server } from 'socket.io'
 import type { ClientToServerEvents, ServerToClientEvents } from '@shared/events'
 import { loadEnv, printEnvUsage } from './config/env.js'
 import { validateAccess, buildAccessKeys } from './socket/auth.js'
+import { registerSessionHandlers } from './socket/handlers/sessionHandlers.js'
 import { createInitialState } from './state/store.js'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -58,6 +59,8 @@ const raceState = createInitialState(env.raceDurationSeconds)
 const accessKeys = buildAccessKeys(env.receptionistKey, env.safetyKey, env.observerKey)
 
 io.on('connection', (socket) => {
+  registerSessionHandlers(io, socket, raceState)
+
   socket.on('auth:check', async (payload, callback) => {
     const ok = await validateAccess(payload.role, payload.key, accessKeys)
     callback(ok ? { ok: true } : { ok: false, message: 'Invalid access key.' })
