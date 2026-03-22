@@ -33,4 +33,5 @@ export interface ServerToClientEvents {
   'race:tick': (timeRemainingSeconds: number) => void
   'sessions:updated': (sessions: RaceSession[]) => void
   'auth:required': () => void
+  'operation:error': (message: string) => void
 }

@@ -1,0 +1,49 @@
+import { useState } from 'react'
+
+import type { Driver } from '@shared/session'
+import { DriverEditor } from './DriverEditor'
+
+interface DriverCardProps {
+  sessionId: string
+  driver: Driver
+  onEdit: (sessionId: string, driverId: string, name: string) => void
+  onRemove: (sessionId: string, driverId: string) => void
+}
+
+export function DriverCard({ sessionId, driver, onEdit, onRemove }: DriverCardProps) {
+  const [isEditing, setIsEditing] = useState(false)
+
+  if (isEditing) {
+    return (
+      <li className="driver-card editing">
+        <DriverEditor
+          mode="edit"
+          initialName={driver.name}
+          submitLabel="Save"
+          onSubmit={(name) => {
+            onEdit(sessionId, driver.id, name)
+            setIsEditing(false)
+          }}
+          onCancel={() => setIsEditing(false)}
+        />
+      </li>
+    )
+  }
+
+  return (
+    <li className="driver-card">
+      <div className="driver-main">
+        <strong>Car {driver.carNumber}</strong>
+        <span>{driver.name}</span>
+      </div>
+      <div className="driver-actions">
+        <button type="button" className="ghost" onClick={() => setIsEditing(true)}>
+          Edit
+        </button>
+        <button type="button" className="danger" onClick={() => onRemove(sessionId, driver.id)}>
+          Remove
+        </button>
+      </div>
+    </li>
+  )
+}
