@@ -5,6 +5,7 @@ import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { Server } from 'socket.io'
 
+import { EMPLOYEE_ROUTES, PUBLIC_ROUTES } from '@shared/constants'
 import type { ClientToServerEvents, ServerToClientEvents } from '@shared/events'
 import { loadEnv, printEnvUsage } from './config/env.js'
 import { validateAccess, buildAccessKeys } from './socket/auth.js'
@@ -29,15 +30,7 @@ app.use(cors())
 app.use(express.json())
 app.use(express.static(clientDistPath))
 
-const firstLevelRoutes = [
-  '/front-desk',
-  '/race-control',
-  '/lap-line-tracker',
-  '/leader-board',
-  '/next-race',
-  '/race-countdown',
-  '/race-flags',
-]
+const firstLevelRoutes = [...EMPLOYEE_ROUTES, ...PUBLIC_ROUTES]
 
 for (const route of firstLevelRoutes) {
   app.get(route, (_req, res) => {

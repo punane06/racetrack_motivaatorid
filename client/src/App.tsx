@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 
+import { ROUTES } from '@shared/constants'
 import { EmployeeLayout } from '@/layouts/EmployeeLayout'
 import { PublicLayout } from '@/layouts/PublicLayout'
 import { FrontDeskPage } from '@/routes/FrontDeskPage'
@@ -14,19 +15,19 @@ function App() {
   return (
     <Routes>
       <Route element={<EmployeeLayout />}>
-        <Route path="/front-desk" element={<FrontDeskPage />} />
-        <Route path="/race-control" element={<RaceControlPage />} />
-        <Route path="/lap-line-tracker" element={<LapLineTrackerPage />} />
+        <Route path={ROUTES.frontDesk} element={<FrontDeskPage />} />
+        <Route path={ROUTES.raceControl} element={<RaceControlPage />} />
+        <Route path={ROUTES.lapLineTracker} element={<LapLineTrackerPage />} />
       </Route>
 
       <Route element={<PublicLayout />}>
-        <Route path="/leader-board" element={<LeaderBoardPage />} />
-        <Route path="/next-race" element={<NextRacePage />} />
-        <Route path="/race-countdown" element={<RaceCountdownPage />} />
-        <Route path="/race-flags" element={<RaceFlagsPage />} />
+        <Route path={ROUTES.leaderBoard} element={<LeaderBoardPage />} />
+        <Route path={ROUTES.nextRace} element={<NextRacePage />} />
+        <Route path={ROUTES.raceCountdown} element={<RaceCountdownPage />} />
+        <Route path={ROUTES.raceFlags} element={<RaceFlagsPage />} />
       </Route>
 
-      <Route path="*" element={<Navigate to="/leader-board" replace />} />
+      <Route path="*" element={<Navigate to={ROUTES.leaderBoard} replace />} />
     </Routes>
   )
 }
