@@ -1,5 +1,4 @@
 import 'dotenv/config'
-import { DEV_RACE_DURATION_SECONDS, PROD_RACE_DURATION_SECONDS } from '@shared/constants'
 
 export interface ServerEnv {
   port: number
@@ -12,7 +11,7 @@ export interface ServerEnv {
 function requireEnv(name: string): string {
   const value = process.env[name]
   if (!value) {
-    throw new Error(`Missing required environment variable: ${name}`)
+    throw new Error(`Missing required env variable: ${name}`)
   }
   return value
 }
@@ -27,14 +26,17 @@ export function loadEnv(): ServerEnv {
     receptionistKey,
     safetyKey,
     observerKey,
-    raceDurationSeconds: process.env.RACE_DEV_MODE === 'true' ? DEV_RACE_DURATION_SECONDS : PROD_RACE_DURATION_SECONDS,
+    raceDurationSeconds:
+      process.env.NODE_ENV === 'dev' ? 60 : 600
   }
 }
 
-export function printEnvUsage(): void {
-  console.error('Server cannot start without access keys.')
-  console.error('Set all keys and start again:')
-  console.error('  RECEPTIONIST_KEY=your_key')
-  console.error('  SAFETY_KEY=your_key')
-  console.error('  OBSERVER_KEY=your_key')
+export function printEnvUsage() {
+  console.log(`
+SET ENV VARIABLES:
+
+export RECEPTIONIST_KEY=123
+export SAFETY_KEY=123
+export OBSERVER_KEY=123
+`)
 }
