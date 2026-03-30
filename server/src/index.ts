@@ -64,6 +64,17 @@ setInterval(() => {
 
 const accessKeys = buildAccessKeys(env.receptionistKey, env.safetyKey, env.observerKey)
 
+app.get('/health', (req, res) => {
+  console.log('[HEALTH] Health check requested')
+  res.json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    sessions: raceState.sessions.length,
+    activeSessionId: raceState.activeSessionId,
+    upcomingSessionId: raceState.upcomingSessionId,
+  })
+})
+
 io.on('connection', (socket) => {
   console.log(`[SOCKET] Client connected: ${socket.id}`)
   registerSessionHandlers(io, socket, raceState)
