@@ -8,7 +8,8 @@ The goal is to deliver an operational racetrack MVP where:
 - employees have dedicated interfaces for race operations,
 - the audience has dedicated display screens for live race information,
 - the server is the single source of truth for race state,
-- client and server share TypeScript contracts for consistency.
+- client and server share TypeScript contracts for consistency,
+- race state persists across server restarts.
 
 ## Team
 
@@ -30,8 +31,9 @@ The goal is to deliver an operational racetrack MVP where:
 
 ## Environment Variables
 
-The server will not start unless all values below are provided:
+The server will not start unless all values below are provided.
 
+Required variables:
 - RECEPTIONIST_KEY
 - SAFETY_KEY
 - OBSERVER_KEY
@@ -51,6 +53,7 @@ $env:RECEPTIONIST_KEY="your_key"
 $env:SAFETY_KEY="your_key"
 $env:OBSERVER_KEY="your_key"
 ```
+If any variable is missing, the server exits with an error and prints usage instructions.
 
 ## Installation
 
@@ -60,65 +63,112 @@ Run in the project root:
 npm install
 ```
 
-## Run
+---
 
-Development mode:
+## Development
+
+Start both server and client in watch mode:
 
 ```bash
 npm run dev
 ```
 
-This starts both:
+This launches:
 
-- server in watch mode,
-- client Vite dev server.
+- the server (TypeScript watch mode),
+- the client (Vite dev server).
 
-Build + start (production-like flow):
+---
+
+## Production-like Run
+
+Build all workspaces:
 
 ```bash
 npm run build
+```
+
+Start the server:
+
+```bash
 npm start
 ```
 
+The client is served from the built `dist` folder.
+
+---
+
 ## Routes
 
-Employee routes:
+### Employee interfaces
 
-- /front-desk
-- /race-control
-- /lap-line-tracker
+- `/front-desk`
+- `/race-control`
+- `/lap-line-tracker`
 
-Public routes:
+### Public screens
 
-- /leader-board
-- /next-race
-- /race-countdown
-- /race-flags
+- `/leader-board`
+- `/next-race`
+- `/race-countdown`
+- `/race-flags`
+
+---
 
 ## Workspace Structure
 
-- server: backend API and WebSocket logic
-- client: user interfaces and route structure
-- shared: contracts shared between server and client
+- **server** — backend API, WebSocket logic, state management  
+- **client** — user interfaces and route structure  
+- **shared** — TypeScript contracts shared between server and client
+
+---
 
 ## Persisted State
 
-The server stores race state in `server/src/state/state.json`.
+The server supports persistent race state storage.
 
-This file is automatically created and updated during runtime.  
-On server restart, the previous state is restored, including:
+- State is stored in:  
+  `server/src/state/state.json`
+- The file is created automatically on first write.
+- All changes to sessions, drivers and race state are autosaved every 2 seconds.
+- On server restart, the previous state is restored.
 
-- upcoming race sessions
-- assigned cars
-- lap times
-- race mode
-- current session
+This ensures that:
 
-To reset the system, simply delete the file.
+- upcoming sessions are preserved,
+- driver lists and edits are not lost,
+- race progress survives accidental restarts,
+- the system behaves consistently across sessions.
+
+To reset the system, delete the `state.json` file.
+
+---
+
+## Exposing the Application (ngrok)
+
+To make the interfaces available on other devices or networks:
+
+1. Install ngrok  
+2. Expose the client:
+
+   ```bash
+   ngrok http 5173
+   ```
+
+3. Expose the server:
+
+   ```bash
+   ngrok http 3000
+   ```
+
+Use the generated URLs to access the system externally.
+
+---
 
 
 ## Notes
 
 - Server validates access keys at startup.
-- The shared module must stay synchronized with both server and client.
-- Current state is an MVP skeleton; race logic is added iteratively.
+- Shared contracts must remain synchronized between server and client.
+- Race duration is configurable via environment variables.
+- In development mode, the race timer may run shorter for testing.
