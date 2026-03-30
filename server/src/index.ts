@@ -1,3 +1,23 @@
+// 1. Load .env and validate env
+
+import dotenv from 'dotenv'
+dotenv.config()
+
+import { loadEnv, printEnvUsage } from './config/env.js'
+
+let env
+try {
+  env = loadEnv()
+  console.log('[ENV] All required environment variables are present')
+} catch (error) {
+  const message = error instanceof Error ? error.message : String(error)
+  console.error('[ENV] Error loading environment variables:', message)
+  printEnvUsage()
+  process.exit(1)
+}
+
+// 2. Imports
+
 import cors from 'cors'
 import express from 'express'
 import { createServer } from 'node:http'
@@ -7,29 +27,26 @@ import { Server } from 'socket.io'
 
 import { EMPLOYEE_ROUTES, PUBLIC_ROUTES } from '@shared/constants'
 import type { ClientToServerEvents, ServerToClientEvents } from '@shared/events'
-import { loadEnv, printEnvUsage } from './config/env.js'
+
 import { validateAccess, buildAccessKeys } from './socket/auth.js'
 import { registerSessionHandlers } from './socket/handlers/sessionHandlers.js'
 import { createInitialState } from './state/store.js'
+import { loadPersistedState, savePersistedState } from './state/persist.js'
+
+// 3. Paths
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 const clientDistPath = resolve(__dirname, '../../client/dist')
 
-let env
-try {
-  env = loadEnv()
-} catch (error) {
-  const message = error instanceof Error ? error.message : String(error)
-  console.error(message)
-  printEnvUsage()
-  process.exit(1)
-}
+// 4. Express setup
 
 const app = express()
 app.use(cors())
 app.use(express.json())
 app.use(express.static(clientDistPath))
+
+// Serve SPA routes
 
 const firstLevelRoutes = [...EMPLOYEE_ROUTES, ...PUBLIC_ROUTES]
 
@@ -39,30 +56,7 @@ for (const route of firstLevelRoutes) {
   })
 }
 
-app.get('/health', (_req, res) => {
-  res.json({ ok: true })
-})
-
-const httpServer = createServer(app)
-const io = new Server<ClientToServerEvents, ServerToClientEvents>(httpServer, {
-  cors: { origin: '*' },
-})
-
-import { loadPersistedState, savePersistedState } from './state/persist.js'
-
-let raceState = loadPersistedState()
-
-if (!raceState) {
-  raceState = createInitialState(env.raceDurationSeconds)
-  savePersistedState(raceState)
-}
-
-// autosave every 2 seconds
-setInterval(() => {
-  savePersistedState(raceState)
-}, 2000)
-
-const accessKeys = buildAccessKeys(env.receptionistKey, env.safetyKey, env.observerKey)
+// 5. Health check endpoint
 
 app.get('/health', (req, res) => {
   console.log('[HEALTH] Health check requested')
@@ -73,6 +67,32 @@ app.get('/health', (req, res) => {
     activeSessionId: raceState.activeSessionId,
     upcomingSessionId: raceState.upcomingSessionId,
   })
+})
+
+// 6. State loading + autosave
+let raceState = loadPersistedState()
+
+if (!raceState) {
+  console.log('[STATE] No persisted state found, creating initial state')
+  raceState = createInitialState(env.raceDurationSeconds)
+  savePersistedState(raceState)
+}
+
+setInterval(() => {
+  savePersistedState(raceState)
+}, 2000)
+
+// 7. Access keys
+const accessKeys = buildAccessKeys(
+  env.receptionistKey,
+  env.safetyKey,
+  env.observerKey
+)
+
+// 8. Socket.IO setup
+const httpServer = createServer(app)
+const io = new Server<ClientToServerEvents, ServerToClientEvents>(httpServer, {
+  cors: { origin: '*' },
 })
 
 io.on('connection', (socket) => {
@@ -94,6 +114,7 @@ io.on('connection', (socket) => {
   })
 })
 
+// 9. Start server
 httpServer.listen(env.port, '0.0.0.0', () => {
   console.log(`Server running on http://0.0.0.0:${env.port}`)
   console.log(`Race duration: ${env.raceDurationSeconds} seconds`)
