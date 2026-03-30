@@ -1,0 +1,9 @@
+export const ErrorCodes = {
+    SESSION_NOT_FOUND: 'SESSION_NOT_FOUND',
+    DRIVER_NOT_FOUND: 'DRIVER_NOT_FOUND',
+    DRIVER_ALREADY_EXISTS: 'DRIVER_ALREADY_EXISTS',
+    INVALID_PAYLOAD: 'INVALID_PAYLOAD',
+    UNKNOWN_ERROR: 'UNKNOWN_ERROR',
+} as const
+
+export type ErrorCode = keyof typeof ErrorCodes

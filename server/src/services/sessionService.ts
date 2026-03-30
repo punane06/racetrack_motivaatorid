@@ -1,5 +1,8 @@
 import type { RaceState } from '@shared/race'
 import type { RaceSession, Driver } from '@shared/session'
+import { AppError } from '../errors/AppError.js'
+import { ErrorCodes } from '../errors/errorCodes.js'
+
 
 export function createSession(state: RaceState, label: string): RaceSession {
   const session: RaceSession = {
@@ -22,7 +25,7 @@ export function createSession(state: RaceState, label: string): RaceSession {
 export function deleteSession(state: RaceState, sessionId: string): void {
   const index = state.sessions.findIndex((s) => s.id === sessionId)
   if (index === -1) {
-    throw new Error('Session not found')
+    throw new AppError(ErrorCodes.SESSION_NOT_FOUND, 'Session not found')
   }
 
   state.sessions.splice(index, 1)
@@ -38,25 +41,25 @@ export function deleteSession(state: RaceState, sessionId: string): void {
 export function addDriver(state: RaceState, sessionId: string, name: string): Driver {
   const session = getSession(state, sessionId)
   if (!session) {
-    throw new Error('Session not found')
+    throw new AppError(ErrorCodes.SESSION_NOT_FOUND, 'Session not found')
   }
 
   const normalizedName = name.trim()
   if (!normalizedName) {
-    throw new Error('Driver name is required')
+    throw new AppError(ErrorCodes.INVALID_PAYLOAD, 'Driver name is required')
   }
 
   const existing = session.drivers.find(
     (driver) => driver.name.toLowerCase() === normalizedName.toLowerCase(),
   )
   if (existing) {
-    throw new Error('Driver name must be unique in the session')
+    throw new AppError(ErrorCodes.DRIVER_ALREADY_EXISTS, 'Driver name must be unique in the session')
   }
 
   const usedCarNumbers = new Set(session.drivers.map((driver) => driver.carNumber))
   const availableCarNumber = findAvailableCar(usedCarNumbers)
   if (!availableCarNumber) {
-    throw new Error('All car numbers are already assigned (max 8)')
+    throw new AppError(ErrorCodes.INVALID_PAYLOAD, 'All car numbers are already assigned (max 8)')
   }
 
   const driver: Driver = {
@@ -77,24 +80,24 @@ export function editDriver(
 ): Driver {
   const session = getSession(state, sessionId)
   if (!session) {
-    throw new Error('Session not found')
+    throw new AppError(ErrorCodes.SESSION_NOT_FOUND, 'Session not found')
   }
 
   const normalizedName = name.trim()
   if (!normalizedName) {
-    throw new Error('Driver name is required')
+    throw new AppError(ErrorCodes.INVALID_PAYLOAD, 'Driver name is required')
   }
 
   const driver = session.drivers.find((d) => d.id === driverId)
   if (!driver) {
-    throw new Error('Driver not found')
+    throw new AppError(ErrorCodes.DRIVER_NOT_FOUND, 'Driver not found')
   }
 
   const existing = session.drivers.find(
     (d) => d.id !== driverId && d.name.toLowerCase() === normalizedName.toLowerCase(),
   )
   if (existing) {
-    throw new Error('Driver name must be unique in the session')
+    throw new AppError(ErrorCodes.DRIVER_ALREADY_EXISTS, 'Driver name must be unique in the session')
   }
 
   driver.name = normalizedName
@@ -104,12 +107,12 @@ export function editDriver(
 export function removeDriver(state: RaceState, sessionId: string, driverId: string): void {
   const session = getSession(state, sessionId)
   if (!session) {
-    throw new Error('Session not found')
+    throw new AppError(ErrorCodes.SESSION_NOT_FOUND, 'Session not found')
   }
 
   const driverIndex = session.drivers.findIndex((d) => d.id === driverId)
   if (driverIndex === -1) {
-    throw new Error('Driver not found')
+    throw new AppError(ErrorCodes.DRIVER_NOT_FOUND, 'Driver not found')
   }
 
   session.drivers.splice(driverIndex, 1)
