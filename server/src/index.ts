@@ -48,7 +48,20 @@ const io = new Server<ClientToServerEvents, ServerToClientEvents>(httpServer, {
   cors: { origin: '*' },
 })
 
-const raceState = createInitialState(env.raceDurationSeconds)
+import { loadPersistedState, savePersistedState } from './state/persist.js'
+
+let raceState = loadPersistedState()
+
+if (!raceState) {
+  raceState = createInitialState(env.raceDurationSeconds)
+  savePersistedState(raceState)
+}
+
+// autosave every 2 seconds
+setInterval(() => {
+  savePersistedState(raceState)
+}, 2000)
+
 const accessKeys = buildAccessKeys(env.receptionistKey, env.safetyKey, env.observerKey)
 
 io.on('connection', (socket) => {

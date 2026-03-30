@@ -101,6 +101,22 @@ Public routes:
 - client: user interfaces and route structure
 - shared: contracts shared between server and client
 
+## Persisted State
+
+The server stores race state in `server/src/state/state.json`.
+
+This file is automatically created and updated during runtime.  
+On server restart, the previous state is restored, including:
+
+- upcoming race sessions
+- assigned cars
+- lap times
+- race mode
+- current session
+
+To reset the system, simply delete the file.
+
+
 ## Notes
 
 - Server validates access keys at startup.
