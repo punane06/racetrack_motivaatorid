@@ -69,7 +69,24 @@ app.get('/health', (req, res) => {
   })
 })
 
-// 6. State loading + autosave
+// 6. State reset endpoint
+app.post('/state/reset', (req, res) => {
+  const key = req.headers['x-access-key']
+
+  if (key !== env.receptionistKey && key !== env.safetyKey) {
+    console.warn('[STATE] Unauthorized reset attempt')
+    return res.status(403).json({ ok: false, message: 'Forbidden' })
+  }
+
+  console.log('[STATE] Reset requested — creating fresh state')
+
+  raceState = createInitialState(env.raceDurationSeconds)
+  savePersistedState(raceState)
+
+  res.json({ ok: true, message: 'State has been reset' })
+})
+
+// 7. State loading + autosave
 let raceState = loadPersistedState()
 
 if (!raceState) {
@@ -82,14 +99,14 @@ setInterval(() => {
   savePersistedState(raceState)
 }, 2000)
 
-// 7. Access keys
+// 8. Access keys
 const accessKeys = buildAccessKeys(
   env.receptionistKey,
   env.safetyKey,
   env.observerKey
 )
 
-// 8. Socket.IO setup
+// 9. Socket.IO setup
 const httpServer = createServer(app)
 const io = new Server<ClientToServerEvents, ServerToClientEvents>(httpServer, {
   cors: { origin: '*' },
@@ -114,7 +131,7 @@ io.on('connection', (socket) => {
   })
 })
 
-// 9. Start server
+// 10. Start server
 httpServer.listen(env.port, '0.0.0.0', () => {
   console.log(`Server running on http://0.0.0.0:${env.port}`)
   console.log(`Race duration: ${env.raceDurationSeconds} seconds`)
