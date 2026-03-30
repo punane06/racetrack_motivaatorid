@@ -34,6 +34,7 @@ export function registerSessionHandlers(
   raceState: RaceState,
 ) {
   socket.on('driver:add', (payload) => {
+    console.log(`[EVENT] driver:add → name="${payload.name}", session=${payload.sessionId}`)
     try {
       addDriver(raceState, payload.sessionId, payload.name)
       io.emit('sessions:updated', raceState.sessions)
@@ -43,6 +44,7 @@ export function registerSessionHandlers(
   })
 
   socket.on('driver:edit', (payload) => {
+    console.log(`[EVENT] driver:edit → driver=${payload.driverId}, session=${payload.sessionId}, newName="${payload.name}"`)
     try {
       editDriver(raceState, payload.sessionId, payload.driverId, payload.name)
       io.emit('sessions:updated', raceState.sessions)
@@ -52,6 +54,7 @@ export function registerSessionHandlers(
   })
 
   socket.on('driver:remove', (payload) => {
+    console.log(`[EVENT] driver:remove → driver=${payload.driverId}, session=${payload.sessionId}`)
     try {
       removeDriver(raceState, payload.sessionId, payload.driverId)
       io.emit('sessions:updated', raceState.sessions)
@@ -61,6 +64,7 @@ export function registerSessionHandlers(
   })
 
   socket.on('session:create', (label) => {
+    console.log(`[EVENT] session:create → label="${label}"`)
     try {
       createSession(raceState, label)
       io.emit('sessions:updated', raceState.sessions)
@@ -70,6 +74,7 @@ export function registerSessionHandlers(
   })
 
   socket.on('session:delete', (sessionId) => {
+    console.log(`[EVENT] session:delete → session=${sessionId}`)
     try {
       deleteSession(raceState, sessionId)
       io.emit('sessions:updated', raceState.sessions)

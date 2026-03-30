@@ -65,15 +65,21 @@ setInterval(() => {
 const accessKeys = buildAccessKeys(env.receptionistKey, env.safetyKey, env.observerKey)
 
 io.on('connection', (socket) => {
+  console.log(`[SOCKET] Client connected: ${socket.id}`)
   registerSessionHandlers(io, socket, raceState)
 
   socket.on('auth:check', async (payload, callback) => {
+    console.log(`[AUTH] Checking access for role="${payload.role}"`)
     const ok = await validateAccess(payload.role, payload.key, accessKeys)
     callback(ok ? { ok: true } : { ok: false, message: 'Invalid access key.' })
   })
 
   socket.on('state:get', (callback) => {
+    console.log(`[STATE] Client requested full state`)
     callback(raceState)
+  })
+  socket.on('disconnect', () => {
+    console.log(`[SOCKET] Client disconnected: ${socket.id}`)
   })
 })
 
