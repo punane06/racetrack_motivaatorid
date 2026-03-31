@@ -2,6 +2,7 @@ import { useState } from 'react'
 
 import type { Driver } from '@shared/session'
 import { DriverEditor } from './DriverEditor'
+import { getCarColor } from '@/lib/carColors'
 
 interface DriverCardProps {
   sessionId: string
@@ -33,7 +34,12 @@ export function DriverCard({ sessionId, driver, onEdit, onRemove }: DriverCardPr
   return (
     <li className="driver-card">
       <div className="driver-main">
-        <strong>Car {driver.carNumber}</strong>
+       <span
+          className="car-badge"
+          style={{ backgroundColor: getCarColor(driver.carNumber) }}
+      >
+          🚗 Car {driver.carNumber}
+      </span> 
         <span>{driver.name}</span>
       </div>
       <div className="driver-actions">
