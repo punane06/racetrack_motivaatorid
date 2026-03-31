@@ -31,24 +31,30 @@ export function DriverCard({ sessionId, driver, onEdit, onRemove }: DriverCardPr
     )
   }
 
-  return (
+    return (
     <li className="driver-card">
       <div className="driver-main">
-       <span
+        <span
           className="car-badge"
           style={{ backgroundColor: getCarColor(driver.carNumber) }}
-      >
+        >
           🚗 Car {driver.carNumber}
-      </span> 
+        </span>
         <span>{driver.name}</span>
       </div>
+
       <div className="driver-actions">
-        <button type="button" className="ghost" onClick={() => setIsEditing(true)}>
-          Edit
-        </button>
-        <button type="button" className="danger" onClick={() => onRemove(sessionId, driver.id)}>
-          Remove
-        </button>
+        <details className="actions-dropdown">
+          <summary className="ghost">Actions ▾</summary>
+          <div className="actions-menu">
+            <button type="button" className="ghost" onClick={() => setIsEditing(true)}>
+              Edit
+            </button>
+            <button type="button" className="danger" onClick={() => onRemove(sessionId, driver.id)}>
+              Remove
+            </button>
+          </div>
+        </details>
       </div>
     </li>
   )
