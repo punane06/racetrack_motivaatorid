@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 
 import type { RaceState } from '@shared/race'
 import type { RaceSession } from '@shared/session'
+import { getCarColor } from '@/lib/carColors'
 import { appSocket } from '@/lib/socket'
 
 function getUpcomingSession(state: RaceState): RaceSession | null {
@@ -88,7 +89,14 @@ export function NextRacePanel() {
                 .sort((a, b) => a.carNumber - b.carNumber)
                 .map((driver) => (
                   <tr key={driver.id}>
-                    <td>{driver.carNumber}</td>
+                    <td>
+                      <span
+                        className="car-badge"
+                        style={{ backgroundColor: getCarColor(driver.carNumber) }}
+                      >
+                        🚗 Car {driver.carNumber}
+                      </span>
+                    </td>
                     <td>{driver.name}</td>
                   </tr>
                 ))}

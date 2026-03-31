@@ -4,6 +4,7 @@ import type { LapData } from '@shared/lap'
 import type { RaceMode, RaceState } from '@shared/race'
 import type { Driver, RaceSession } from '@shared/session'
 import { appSocket } from '@/lib/socket'
+import { getCarColor } from '@/lib/carColors'
 
 type LeaderRow = {
   carNumber: number
@@ -165,9 +166,17 @@ export function LeaderBoardPanel() {
             </tr>
           </thead>
           <tbody>
-            {rows.map((row, index) => (
+            {rows.map((row) => (
               <tr key={row.carNumber}>
-                <td>{index + 1}</td>
+                <td>
+                  <span
+                    className="car-badge"
+                    style={{ backgroundColor: getCarColor(row.carNumber) }}
+                    title={`Car ${row.carNumber}`}
+                  >
+                  🚗 Car {row.carNumber}
+                  </span>
+                </td>
                 <td>{row.carNumber}</td>
                 <td>{row.driverName}</td>
                 <td>{row.currentLap}</td>
