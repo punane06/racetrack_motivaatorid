@@ -1,3 +1,4 @@
+import type { LapData } from './lap.js'
 import type { RaceSession } from './session.js'
 
 export type RaceMode = 'safe' | 'hazard' | 'danger' | 'finish'
@@ -9,4 +10,6 @@ export interface RaceState {
   sessions: RaceSession[]
   timeRemainingSeconds: number
   startedAt: number | null
+  lapData: LapData[]
+  lastFinishedSessionId: string | null
 }
