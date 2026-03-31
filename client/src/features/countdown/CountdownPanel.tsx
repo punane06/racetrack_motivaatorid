@@ -1,8 +1,73 @@
+import { useEffect, useState } from 'react'
+
+import type { RaceState } from '@shared/race'
+import { appSocket } from '@/lib/socket'
+
+function formatTime(seconds: number): string {
+  const mins = Math.floor(seconds / 60)
+  const secs = seconds % 60
+  return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`
+}
+
 export function CountdownPanel() {
+  const [state, setState] = useState<RaceState | null>(null)
+  const [isFullscreen, setIsFullscreen] = useState(false)
+
+  useEffect(() => {
+    const onStateUpdated = (nextState: RaceState) => setState(nextState)
+    const onRaceTick = (timeRemainingSeconds: number) => {
+      setState((prev) => (prev ? { ...prev, timeRemainingSeconds } : prev))
+    }
+
+    const fetchState = () => {
+      appSocket.emit('state:get', (currentState: RaceState) => setState(currentState))
+    }
+
+    const onFullscreenChange = () => setIsFullscreen(Boolean(document.fullscreenElement))
+
+    appSocket.on('connect', fetchState)
+    appSocket.on('state:updated', onStateUpdated)
+    appSocket.on('race:tick', onRaceTick)
+    document.addEventListener('fullscreenchange', onFullscreenChange)
+
+    if (appSocket.connected) fetchState()
+
+    return () => {
+      appSocket.off('connect', fetchState)
+      appSocket.off('state:updated', onStateUpdated)
+      appSocket.off('race:tick', onRaceTick)
+      document.removeEventListener('fullscreenchange', onFullscreenChange)
+    }
+  }, [])
+
+  const toggleFullscreen = async () => {
+    if (!document.fullscreenElement) {
+      await document.documentElement.requestFullscreen()
+      return
+    }
+    await document.exitFullscreen()
+  }
+
+  if (!state) {
+    return (
+      <section className="panel countdown-panel">
+        <h2>Race Countdown</h2>
+        <p>Connecting…</p>
+      </section>
+    )
+  }
+
   return (
-    <section className="panel">
-      <h2>Race Countdown</h2>
-      <p>This display will show the real-time remaining race time.</p>
+    <section className="panel countdown-panel">
+      <header className="countdown-header">
+        <h2>Race Countdown</h2>
+        <button type="button" onClick={toggleFullscreen}>
+          {isFullscreen ? 'Exit Full Screen' : 'Full Screen'}
+        </button>
+      </header>
+
+      <div className="countdown-time">{formatTime(state.timeRemainingSeconds)}</div>
+      {!state.activeSessionId ? <p>Waiting for race start</p> : null}
     </section>
   )
 }
