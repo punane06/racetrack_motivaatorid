@@ -193,3 +193,142 @@ button.danger {
     justify-content: flex-end;
   }
 }
+
+.leaderboard-header,
+.next-race-header,
+.countdown-header,
+.race-flags-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.leaderboard-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin: 0.75rem 0 1rem;
+  font-weight: 600;
+}
+
+.leaderboard-table,
+.next-race-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.leaderboard-table th,
+.leaderboard-table td,
+.next-race-table th,
+.next-race-table td {
+  padding: 0.65rem 0.75rem;
+  border-bottom: 1px solid #d7d7d7;
+  text-align: left;
+  font-size: clamp(0.95rem, 1.8vw, 1.2rem);
+}
+
+.proceed-banner {
+  margin: 0.75rem 0;
+  padding: 0.9rem 1rem;
+  border-radius: 0.5rem;
+  background: #ffe9a8;
+  color: #2d2d2d;
+  font-weight: 800;
+  font-size: clamp(1rem, 2vw, 1.4rem);
+  text-transform: uppercase;
+}
+
+.countdown-panel {
+  text-align: center;
+}
+
+.countdown-time {
+  margin: 2rem 0 1rem;
+  font-size: clamp(4rem, 16vw, 14rem);
+  line-height: 1;
+  font-weight: 900;
+}
+
+.race-flags-panel {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.race-flag-label {
+  margin: auto;
+  font-size: clamp(2rem, 8vw, 8rem);
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #111;
+  text-shadow: 0 1px 2px rgb(255 255 255 / 35%);
+}
+
+.flag-safe {
+  background: #1eae4a;
+}
+
+.flag-hazard {
+  background: #ffd400;
+}
+
+.flag-danger {
+  background: #d90429;
+}
+
+.flag-finish {
+  background:
+    linear-gradient(45deg, #000 25%, transparent 25%) -20px 0 / 40px 40px,
+    linear-gradient(-45deg, #000 25%, transparent 25%) -20px 0 / 40px 40px,
+    linear-gradient(45deg, transparent 75%, #000 75%) -20px 0 / 40px 40px,
+    linear-gradient(-45deg, transparent 75%, #000 75%) -20px 0 / 40px 40px,
+    #fff;
+}
+.car-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-width: 96px;
+  padding: 0.45rem 0.8rem;
+  border-radius: 999px;
+  color: #fff;
+  font-weight: 800;
+  line-height: 1;
+  box-shadow: inset 0 -2px 0 rgb(0 0 0 / 15%);
+}
+.actions-dropdown {
+  position: relative;
+}
+
+.actions-dropdown summary {
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+}
+
+.actions-dropdown summary::-webkit-details-marker {
+  display: none;
+}
+
+.actions-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.35rem);
+  min-width: 140px;
+  padding: 0.35rem;
+  border: 1px solid #c7d3ea;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 8px 20px rgb(15 23 42 / 12%);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  z-index: 10;
+}
+
+.actions-menu button {
+  width: 100%;
+}

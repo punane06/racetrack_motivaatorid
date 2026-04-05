@@ -1,7 +1,10 @@
-import fs from "fs"
-import path from "path"
+import fs from 'node:fs'
+import path, { dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
-const STATE_FILE = path.join(__dirname, "state.json")
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+const STATE_FILE = path.join(__dirname, 'state.json')
 
 export function loadPersistedState() {
     if (!fs.existsSync(STATE_FILE)) return null

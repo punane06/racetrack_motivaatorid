@@ -1,8 +1,7 @@
-import type { RaceState } from '@shared/race'
-import type { RaceSession, Driver } from '@shared/session'
-import { AppError } from '../errors/AppError.js'
-import { ErrorCodes } from '../errors/errorCodes.js'
-
+import type { RaceState } from 'shared/dist/race.js';
+import type { RaceSession, Driver } from 'shared/dist/session.js';
+import { AppError } from '../errors/AppError.js';
+import { ErrorCodes } from '../errors/errorCodes.js';
 
 export function createSession(state: RaceState, label: string): RaceSession {
   console.log(`[SERVICE] Creating session "${label}"`)
@@ -51,6 +50,10 @@ export function addDriver(state: RaceState, sessionId: string, name: string): Dr
     throw new AppError(ErrorCodes.SESSION_NOT_FOUND, 'Session not found')
   }
 
+  if (session.drivers.length >= 8) {
+    throw new Error('Maximum 8 drivers per session is reached')
+  }
+
   const normalizedName = name.trim()
   if (!normalizedName) {
     console.warn(`[SERVICE] Invalid driver name (empty)`)
@@ -58,14 +61,14 @@ export function addDriver(state: RaceState, sessionId: string, name: string): Dr
   }
 
   const existing = session.drivers.find(
-    (driver) => driver.name.toLowerCase() === normalizedName.toLowerCase(),
+    (driver: Driver) => driver.name.toLowerCase() === normalizedName.toLowerCase(),
   )
   if (existing) {
     console.warn(`[SERVICE] Driver "${normalizedName}" already exists in session ${sessionId}`)
     throw new AppError(ErrorCodes.DRIVER_ALREADY_EXISTS, 'Driver name must be unique in the session')
   }
 
-  const usedCarNumbers = new Set(session.drivers.map((driver) => driver.carNumber))
+  const usedCarNumbers = new Set<number>(session.drivers.map((driver: Driver) => driver.carNumber))
   const availableCarNumber = findAvailableCar(usedCarNumbers)
   if (!availableCarNumber) {
     console.warn(`[SERVICE] No available car numbers left in session ${sessionId}`)
@@ -102,14 +105,14 @@ export function editDriver(
     throw new AppError(ErrorCodes.INVALID_PAYLOAD, 'Driver name is required')
   }
 
-  const driver = session.drivers.find((d) => d.id === driverId)
+  const driver = session.drivers.find((d: Driver) => d.id === driverId)
   if (!driver) {
     console.warn(`[SERVICE] Driver ${driverId} not found in session ${sessionId}`)
     throw new AppError(ErrorCodes.DRIVER_NOT_FOUND, 'Driver not found')
   }
 
   const existing = session.drivers.find(
-    (d) => d.id !== driverId && d.name.toLowerCase() === normalizedName.toLowerCase(),
+    (d: Driver) => d.id !== driverId && d.name.toLowerCase() === normalizedName.toLowerCase(),
   )
   if (existing) {
     console.warn(`[SERVICE] Driver name "${normalizedName}" already exists in session ${sessionId}`)
@@ -128,7 +131,7 @@ export function removeDriver(state: RaceState, sessionId: string, driverId: stri
     throw new AppError(ErrorCodes.SESSION_NOT_FOUND, 'Session not found')
   }
 
-  const driverIndex = session.drivers.findIndex((d) => d.id === driverId)
+  const driverIndex = session.drivers.findIndex((d: Driver) => d.id === driverId)
   if (driverIndex === -1) {
     console.warn(`[SERVICE] Driver ${driverId} not found in session ${sessionId}`)
     throw new AppError(ErrorCodes.DRIVER_NOT_FOUND, 'Driver not found')
@@ -138,7 +141,7 @@ export function removeDriver(state: RaceState, sessionId: string, driverId: stri
 }
 
 function getSession(state: RaceState, sessionId: string): RaceSession | undefined {
-  return state.sessions.find((s) => s.id === sessionId)
+  return state.sessions.find((s: RaceSession) => s.id === sessionId)
 }
 
 function findAvailableCar(used: Set<number>): number | null {

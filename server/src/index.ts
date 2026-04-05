@@ -1,10 +1,21 @@
-// 1. Load .env and validate env
-
 import dotenv from 'dotenv'
 dotenv.config()
-
 import { loadEnv, printEnvUsage } from './config/env.js'
+import cors from 'cors'
+import express from 'express'
+import { createServer } from 'node:http'
+import { dirname, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { Server } from 'socket.io'
+import { EMPLOYEE_ROUTES, PUBLIC_ROUTES } from 'shared/dist/constants.js'
+import type { ClientToServerEvents, ServerToClientEvents } from 'shared/dist/events.js'
+import { buildAccessKeys, validateAccess } from './socket/auth.js'
+import { registerSessionHandlers } from './socket/handlers/sessionHandlers.js'
+import { createInitialState } from './state/store.js'
+import { loadPersistedState, savePersistedState } from './state/persist.js'
+import type { LapData } from 'shared/dist/lap.js'
 
+// 1. Load and validate env
 let env
 try {
   env = loadEnv()
@@ -16,48 +27,26 @@ try {
   process.exit(1)
 }
 
-// 2. Imports
-
-import cors from 'cors'
-import express from 'express'
-import { createServer } from 'node:http'
-import { dirname, resolve } from 'node:path'
-import { fileURLToPath } from 'node:url'
-import { Server } from 'socket.io'
-
-import { EMPLOYEE_ROUTES, PUBLIC_ROUTES } from '@shared/constants'
-import type { ClientToServerEvents, ServerToClientEvents } from '@shared/events'
-
-import { validateAccess, buildAccessKeys } from './socket/auth.js'
-import { registerSessionHandlers } from './socket/handlers/sessionHandlers.js'
-import { createInitialState } from './state/store.js'
-import { loadPersistedState, savePersistedState } from './state/persist.js'
-
-// 3. Paths
-
+// 2. Paths
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 const clientDistPath = resolve(__dirname, '../../client/dist')
 
-// 4. Express setup
-
+// 3. Express setup
 const app = express()
 app.use(cors())
 app.use(express.json())
 app.use(express.static(clientDistPath))
 
 // Serve SPA routes
-
 const firstLevelRoutes = [...EMPLOYEE_ROUTES, ...PUBLIC_ROUTES]
-
 for (const route of firstLevelRoutes) {
   app.get(route, (_req, res) => {
     res.sendFile(resolve(clientDistPath, 'index.html'))
   })
 }
 
-// 5. Health check endpoint
-
+// 4. Health check endpoint
 app.get('/health', (req, res) => {
   console.log('[HEALTH] Health check requested')
   res.json({
@@ -69,70 +58,77 @@ app.get('/health', (req, res) => {
   })
 })
 
-// 6. State reset endpoint
+// 5. State reset endpoint
 app.post('/state/reset', (req, res) => {
   const key = req.headers['x-access-key']
-
   if (key !== env.receptionistKey && key !== env.safetyKey) {
     console.warn('[STATE] Unauthorized reset attempt')
     return res.status(403).json({ ok: false, message: 'Forbidden' })
   }
-
   console.log('[STATE] Reset requested — creating fresh state')
-
   raceState = createInitialState(env.raceDurationSeconds)
   savePersistedState(raceState)
-
   res.json({ ok: true, message: 'State has been reset' })
 })
 
-// 7. State loading + autosave
+// 6. State loading + autosave
 let raceState = loadPersistedState()
-
 if (!raceState) {
   console.log('[STATE] No persisted state found, creating initial state')
   raceState = createInitialState(env.raceDurationSeconds)
   savePersistedState(raceState)
 }
-
 setInterval(() => {
   savePersistedState(raceState)
 }, 2000)
 
-// 8. Access keys
-const accessKeys = buildAccessKeys(
-  env.receptionistKey,
-  env.safetyKey,
-  env.observerKey
-)
+// 7. Access keys
+const accessKeys = buildAccessKeys(env.receptionistKey, env.safetyKey, env.observerKey)
 
-// 9. Socket.IO setup
+// 8. Socket.IO setup
 const httpServer = createServer(app)
 const io = new Server<ClientToServerEvents, ServerToClientEvents>(httpServer, {
   cors: { origin: '*' },
 })
 
+httpServer.listen(env.port, '127.0.0.1', () => {
+  console.log(`Server running on http://127.0.0.1:${env.port}`)
+  console.log(`Race duration: ${env.raceDurationSeconds} seconds`)
+})
+
+// 9. Socket connection handlers
 io.on('connection', (socket) => {
   console.log(`[SOCKET] Client connected: ${socket.id}`)
-  registerSessionHandlers(io, socket, raceState)
-
-  socket.on('auth:check', async (payload, callback) => {
-    console.log(`[AUTH] Checking access for role="${payload.role}"`)
-    const ok = await validateAccess(payload.role, payload.key, accessKeys)
-    callback(ok ? { ok: true } : { ok: false, message: 'Invalid access key.' })
-  })
 
   socket.on('state:get', (callback) => {
-    console.log(`[STATE] Client requested full state`)
     callback(raceState)
   })
+
+  socket.on('auth:check', async ({ role, key }, callback) => {
+    const ok = await validateAccess(role, key, accessKeys)
+    callback({ ok, message: ok ? undefined : 'Invalid access key' })
+  })
+
+  socket.on('lap:record', (carNumber: number) => {
+    if (raceState.status !== 'running') return
+    const now = Date.now()
+    const existing = raceState.lapData.find((d: LapData) => d.carNumber === carNumber)
+    if (existing) {
+      const lapMs = existing.lastCrossedAt === null ? null : now - existing.lastCrossedAt
+      if (lapMs !== null && (existing.fastestLapMs === null || lapMs < existing.fastestLapMs)) {
+        existing.fastestLapMs = lapMs
+      }
+      existing.currentLap += 1
+      existing.lastCrossedAt = now
+    } else {
+      raceState.lapData.push({ carNumber, currentLap: 1, fastestLapMs: null, lastCrossedAt: now })
+    }
+    io.emit('lap:recorded', raceState.lapData)
+  })
+
+  registerSessionHandlers(io, socket, raceState)
+
   socket.on('disconnect', () => {
     console.log(`[SOCKET] Client disconnected: ${socket.id}`)
   })
-})
-
-// 10. Start server
-httpServer.listen(env.port, '0.0.0.0', () => {
-  console.log(`Server running on http://0.0.0.0:${env.port}`)
-  console.log(`Race duration: ${env.raceDurationSeconds} seconds`)
 })

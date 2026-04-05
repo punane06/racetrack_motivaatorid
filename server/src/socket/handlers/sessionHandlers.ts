@@ -1,31 +1,63 @@
-import type { Server, Socket } from 'socket.io'
-import type { ClientToServerEvents, ServerToClientEvents } from '@shared/events'
-import type { RaceState } from '@shared/race'
+import type { Server, Socket } from 'socket.io';
+import type { ClientToServerEvents, ServerToClientEvents } from 'shared/dist/events.js';
+import type { RaceState } from 'shared/dist/race.js';
+import type { RaceSession } from 'shared/dist/session.js';
+import { addDriver, createSession, deleteSession, editDriver, removeDriver } from '../../services/sessionService.js';
 
-import {
-  addDriver,
-  createSession,
-  deleteSession,
-  editDriver,
-  removeDriver,
-} from '../../services/sessionService.js'
+let raceInterval: NodeJS.Timeout | null = null;
 
-import { AppError } from '../../errors/AppError.js'
-import { ErrorCodes } from '../../errors/errorCodes.js'
+function broadcastState(io: Server<ClientToServerEvents, ServerToClientEvents>, raceState: RaceState) {
+  io.emit('state:updated', raceState);
+}
 
-function handleError(socket: Socket, error: unknown) {
-  if (error instanceof AppError) {
-    socket.emit('operation:error', {
-      code: error.code,
-      message: error.message,
-    })
-  } else {
-    socket.emit('operation:error', {
-      code: ErrorCodes.UNKNOWN_ERROR,
-      message: 'Unexpected server error',
-    })
-    console.error('Unexpected error:', error)
+function startRace(io: Server<ClientToServerEvents, ServerToClientEvents>, raceState: RaceState) {
+  if (raceState.status === 'running' || !raceState.upcomingSessionId) return;
+  raceState.status = 'running';
+  raceState.activeSessionId = raceState.upcomingSessionId;
+  raceState.upcomingSessionId = null;
+  raceState.startedAt = Date.now();
+  if (raceInterval) {
+    clearInterval(raceInterval);
   }
+  raceInterval = setInterval(() => {
+    if (raceState.timeRemainingSeconds > 0) {
+      raceState.timeRemainingSeconds -= 1;
+      io.emit('race:tick', raceState.timeRemainingSeconds);
+      broadcastState(io, raceState);
+    }
+    if (raceState.timeRemainingSeconds <= 0) {
+      if (raceInterval) {
+        clearInterval(raceInterval);
+        raceInterval = null;
+      }
+      raceState.status = 'finished';
+      io.emit('race:tick', 0);
+      broadcastState(io, raceState);
+    }
+  }, 1000);
+}
+
+function setRaceMode(io: Server<ClientToServerEvents, ServerToClientEvents>, raceState: RaceState, mode: string) {
+  if (!['safe', 'hazard', 'danger', 'finish'].includes(mode)) return;
+  const raceMode = mode as RaceState['mode'];
+  raceState.mode = raceMode;
+  io.emit('race:mode', raceMode);
+  broadcastState(io, raceState);
+}
+
+function endSession(io: Server<ClientToServerEvents, ServerToClientEvents>, raceState: RaceState) {
+  if (raceState.activeSessionId) {
+    const activeSessionId = raceState.activeSessionId;
+    const activeSession = raceState.sessions.find((s: RaceSession) => s.id === activeSessionId);
+    if (activeSession) activeSession.status = 'finished';
+  }
+  raceState.activeSessionId = null;
+  raceState.status = 'idle';
+  if (raceInterval) {
+    clearInterval(raceInterval);
+    raceInterval = null;
+  }
+  broadcastState(io, raceState);
 }
 
 export function registerSessionHandlers(
@@ -33,53 +65,88 @@ export function registerSessionHandlers(
   socket: Socket<ClientToServerEvents, ServerToClientEvents>,
   raceState: RaceState,
 ) {
-  socket.on('driver:add', (payload) => {
-    console.log(`[EVENT] driver:add → name="${payload.name}", session=${payload.sessionId}`)
-    try {
-      addDriver(raceState, payload.sessionId, payload.name)
-      io.emit('sessions:updated', raceState.sessions)
-    } catch (error) {
-      handleError(socket, error)
-    }
-  })
+  const emitSessionsAndState = () => {
+    io.emit('sessions:updated', raceState.sessions);
+    io.emit('state:updated', raceState);
+  };
 
-  socket.on('driver:edit', (payload) => {
-    console.log(`[EVENT] driver:edit → driver=${payload.driverId}, session=${payload.sessionId}, newName="${payload.name}"`)
+  socket.on('driver:add', (payload: { sessionId: string; name: string }) => {
     try {
-      editDriver(raceState, payload.sessionId, payload.driverId, payload.name)
-      io.emit('sessions:updated', raceState.sessions)
+      addDriver(raceState, payload.sessionId, payload.name);
+      emitSessionsAndState();
     } catch (error) {
-      handleError(socket, error)
+      const message = error instanceof Error ? error.message : String(error);
+      socket.emit('operation:error', message);
     }
-  })
+  });
 
-  socket.on('driver:remove', (payload) => {
-    console.log(`[EVENT] driver:remove → driver=${payload.driverId}, session=${payload.sessionId}`)
+  socket.on('driver:edit', (payload: { sessionId: string; driverId: string; name: string }) => {
     try {
-      removeDriver(raceState, payload.sessionId, payload.driverId)
-      io.emit('sessions:updated', raceState.sessions)
+      editDriver(raceState, payload.sessionId, payload.driverId, payload.name);
+      emitSessionsAndState();
     } catch (error) {
-      handleError(socket, error)
+      const message = error instanceof Error ? error.message : String(error);
+      socket.emit('operation:error', message);
     }
-  })
+  });
 
-  socket.on('session:create', (label) => {
-    console.log(`[EVENT] session:create → label="${label}"`)
+  socket.on('driver:remove', (payload: { sessionId: string; driverId: string }) => {
     try {
-      createSession(raceState, label)
-      io.emit('sessions:updated', raceState.sessions)
+      removeDriver(raceState, payload.sessionId, payload.driverId);
+      emitSessionsAndState();
     } catch (error) {
-      handleError(socket, error)
+      const message = error instanceof Error ? error.message : String(error);
+      socket.emit('operation:error', message);
     }
-  })
+  });
 
-  socket.on('session:delete', (sessionId) => {
-    console.log(`[EVENT] session:delete → session=${sessionId}`)
+  socket.on('session:create', (label: string) => {
     try {
-      deleteSession(raceState, sessionId)
-      io.emit('sessions:updated', raceState.sessions)
+      createSession(raceState, label);
+      emitSessionsAndState();
     } catch (error) {
-      handleError(socket, error)
+      const message = error instanceof Error ? error.message : String(error);
+      socket.emit('operation:error', message);
     }
-  })
+  });
+
+  socket.on('session:delete', (sessionId: string) => {
+    try {
+      deleteSession(raceState, sessionId);
+      emitSessionsAndState();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      socket.emit('operation:error', message);
+    }
+  });
+
+  socket.on('race:start', () => {
+    try {
+      startRace(io, raceState);
+      emitSessionsAndState();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      socket.emit('operation:error', message);
+    }
+  });
+
+  socket.on('race:mode_change', (mode: string) => {
+    try {
+      setRaceMode(io, raceState, mode);
+      emitSessionsAndState();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      socket.emit('operation:error', message);
+    }
+  });
+
+  socket.on('race:end_session', () => {
+    try {
+      endSession(io, raceState);
+      emitSessionsAndState();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      socket.emit('operation:error', message);
+    }
+  });
 }

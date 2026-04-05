@@ -76,7 +76,6 @@ Install all dependencies:
 npm install
 ```
 
----
 
 # 5. Development
 
