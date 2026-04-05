@@ -1,4 +1,4 @@
-import type { RaceState } from '@shared/race'
+import type { RaceState } from 'shared/dist/race.js'
 
 export function createInitialState(raceDurationSeconds: number): RaceState {
   return {
@@ -9,5 +9,7 @@ export function createInitialState(raceDurationSeconds: number): RaceState {
     sessions: [],
     timeRemainingSeconds: raceDurationSeconds,
     startedAt: null,
+    lapData: [],
+    lastFinishedSessionId: null,
   }
 }

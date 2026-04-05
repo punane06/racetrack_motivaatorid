@@ -1,5 +1,5 @@
-import type { RaceState } from '@shared/race'
-import type { RaceSession, Driver } from '@shared/session'
+import type { RaceState } from 'shared/dist/race.js'
+import type { RaceSession, Driver } from 'shared/dist/session.js'
 
 export function createSession(state: RaceState, label: string): RaceSession {
   const session: RaceSession = {
