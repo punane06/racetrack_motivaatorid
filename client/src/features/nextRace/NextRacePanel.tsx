@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useState } from 'react'
-
+import { useEffect, useState, useMemo } from 'react'
 import type { RaceState } from '@shared/race'
 import type { RaceSession } from '@shared/session'
-import { getCarColor } from '@/lib/carColors'
 import { appSocket } from '@/lib/socket'
+import { getCarColor } from '@/lib/carColors'
 
+// PR-ist: abifunktsioonid
 function getUpcomingSession(state: RaceState): RaceSession | null {
   if (!state.upcomingSessionId) return null
   return state.sessions.find((session) => session.id === state.upcomingSessionId) ?? null
@@ -15,31 +15,39 @@ function shouldShowProceedMessage(state: RaceState): boolean {
 }
 
 export function NextRacePanel() {
+  // Maini loogika: raceState
+  const [raceState, setRaceState] = useState<RaceState | null>(null)
+  // PR-ist: täisekraan ja state
   const [state, setState] = useState<RaceState | null>(null)
   const [isFullscreen, setIsFullscreen] = useState(false)
 
   useEffect(() => {
-    const onStateUpdated = (nextState: RaceState) => setState(nextState)
-
+    // Maini event
+    const onStateUpdated = (state: RaceState) => {
+      setRaceState(state)
+      setState(state)
+    }
+    appSocket.on('state:updated', onStateUpdated)
+    appSocket.emit('state:get', (state) => {
+      setRaceState(state)
+      setState(state)
+    })
+    // PR-ist: täisekraan
     const fetchState = () => {
       appSocket.emit('state:get', (currentState: RaceState) => setState(currentState))
     }
-
     const onFullscreenChange = () => setIsFullscreen(Boolean(document.fullscreenElement))
-
     appSocket.on('connect', fetchState)
-    appSocket.on('state:updated', onStateUpdated)
     document.addEventListener('fullscreenchange', onFullscreenChange)
-
     if (appSocket.connected) fetchState()
-
     return () => {
-      appSocket.off('connect', fetchState)
       appSocket.off('state:updated', onStateUpdated)
+      appSocket.off('connect', fetchState)
       document.removeEventListener('fullscreenchange', onFullscreenChange)
     }
   }, [])
 
+  // PR-ist: upcoming ja showProceed
   const upcoming = useMemo(() => (state ? getUpcomingSession(state) : null), [state])
   const showProceed = useMemo(() => (state ? shouldShowProceedMessage(state) : false), [state])
 
@@ -51,7 +59,8 @@ export function NextRacePanel() {
     await document.exitFullscreen()
   }
 
-  if (!state) {
+  // Maini fallback: kui raceState puudub
+  if (!raceState) {
     return (
       <section className="panel">
         <h2>Next Race</h2>
@@ -60,6 +69,7 @@ export function NextRacePanel() {
     )
   }
 
+  // PR-ist: detailne vaade
   return (
     <section className="panel next-race-panel">
       <header className="next-race-header">
@@ -68,10 +78,8 @@ export function NextRacePanel() {
           {isFullscreen ? 'Exit Full Screen' : 'Full Screen'}
         </button>
       </header>
-
       {showProceed ? <p className="proceed-banner">Proceed to paddock</p> : null}
-
-      {!upcoming ? (
+      {upcoming == null ? (
         <p>No upcoming session configured.</p>
       ) : (
         <>

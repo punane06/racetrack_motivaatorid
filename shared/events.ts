@@ -31,6 +31,7 @@ export interface ServerToClientEvents {
   'state:updated': (state: RaceState) => void
   'lap:recorded': (lapData: LapData[]) => void
   'race:tick': (timeRemainingSeconds: number) => void
+  'race:mode': (mode: RaceMode) => void
   'sessions:updated': (sessions: RaceSession[]) => void
   'auth:required': () => void
   'operation:error': (message: string) => void

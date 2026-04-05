@@ -1,5 +1,5 @@
-import type { RaceState } from '@shared/race'
-import type { RaceSession, Driver } from '@shared/session'
+import type { RaceState } from 'shared/dist/race.js'
+import type { RaceSession, Driver } from 'shared/dist/session.js'
 
 export function createSession(state: RaceState, label: string): RaceSession {
   const session: RaceSession = {
@@ -41,19 +41,23 @@ export function addDriver(state: RaceState, sessionId: string, name: string): Dr
     throw new Error('Session not found')
   }
 
+  if (session.drivers.length >= 8) {
+    throw new Error('Maximum 8 drivers per session is reached')
+  }
+
   const normalizedName = name.trim()
   if (!normalizedName) {
     throw new Error('Driver name is required')
   }
 
   const existing = session.drivers.find(
-    (driver) => driver.name.toLowerCase() === normalizedName.toLowerCase(),
+    (driver: Driver) => driver.name.toLowerCase() === normalizedName.toLowerCase(),
   )
   if (existing) {
     throw new Error('Driver name must be unique in the session')
   }
 
-  const usedCarNumbers = new Set(session.drivers.map((driver) => driver.carNumber))
+  const usedCarNumbers = new Set<number>(session.drivers.map((driver: Driver) => driver.carNumber))
   const availableCarNumber = findAvailableCar(usedCarNumbers)
   if (!availableCarNumber) {
     throw new Error('All car numbers are already assigned (max 8)')
@@ -85,13 +89,13 @@ export function editDriver(
     throw new Error('Driver name is required')
   }
 
-  const driver = session.drivers.find((d) => d.id === driverId)
+  const driver = session.drivers.find((d: Driver) => d.id === driverId)
   if (!driver) {
     throw new Error('Driver not found')
   }
 
   const existing = session.drivers.find(
-    (d) => d.id !== driverId && d.name.toLowerCase() === normalizedName.toLowerCase(),
+    (d: Driver) => d.id !== driverId && d.name.toLowerCase() === normalizedName.toLowerCase(),
   )
   if (existing) {
     throw new Error('Driver name must be unique in the session')
@@ -107,7 +111,7 @@ export function removeDriver(state: RaceState, sessionId: string, driverId: stri
     throw new Error('Session not found')
   }
 
-  const driverIndex = session.drivers.findIndex((d) => d.id === driverId)
+  const driverIndex = session.drivers.findIndex((d: Driver) => d.id === driverId)
   if (driverIndex === -1) {
     throw new Error('Driver not found')
   }
@@ -116,7 +120,7 @@ export function removeDriver(state: RaceState, sessionId: string, driverId: stri
 }
 
 function getSession(state: RaceState, sessionId: string): RaceSession | undefined {
-  return state.sessions.find((s) => s.id === sessionId)
+  return state.sessions.find((s: RaceSession) => s.id === sessionId)
 }
 
 function findAvailableCar(used: Set<number>): number | null {

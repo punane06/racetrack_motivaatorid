@@ -1,18 +1,11 @@
-import { useEffect, useMemo, useState } from 'react'
-
+import { useEffect, useState, useMemo } from 'react'
+import { appSocket } from '../../lib/socket'
+import type { RaceSession } from '@shared/session'
 import type { LapData } from '@shared/lap'
 import type { RaceMode, RaceState } from '@shared/race'
-import type { Driver, RaceSession } from '@shared/session'
-import { appSocket } from '@/lib/socket'
 import { getCarColor } from '@/lib/carColors'
 
-type LeaderRow = {
-  carNumber: number
-  driverName: string
-  currentLap: number
-  fastestLapMs: number | null
-}
-
+// PR-ist: abifunktsioonid
 function formatTime(seconds: number): string {
   const mins = Math.floor(seconds / 60)
   const secs = seconds % 60
@@ -20,10 +13,7 @@ function formatTime(seconds: number): string {
 }
 
 function formatLap(ms: number | null): string {
-  if (ms === null) {
-    return '—'
-  }
-
+  if (ms === null) return '—'
   const mins = Math.floor(ms / 60000)
   const secs = Math.floor((ms % 60000) / 1000)
   const millis = ms % 1000
@@ -32,14 +22,11 @@ function formatLap(ms: number | null): string {
 
 function modeLabel(mode: RaceMode): string {
   switch (mode) {
-    case 'safe':
-      return 'GREEN FLAG'
-    case 'hazard':
-      return 'YELLOW FLAG'
-    case 'danger':
-      return 'RED FLAG'
-    case 'finish':
-      return 'CHEQUERED FLAG'
+    case 'safe': return 'GREEN FLAG'
+    case 'hazard': return 'YELLOW FLAG'
+    case 'danger': return 'RED FLAG'
+    case 'finish': return 'CHEQUERED FLAG'
+    default: return mode
   }
 }
 
@@ -47,17 +34,14 @@ function getDisplaySession(state: RaceState): RaceSession | null {
   if (state.activeSessionId) {
     return state.sessions.find((session) => session.id === state.activeSessionId) ?? null
   }
-
   if (state.lastFinishedSessionId) {
     return state.sessions.find((session) => session.id === state.lastFinishedSessionId) ?? null
   }
-
   return null
 }
 
-function joinRows(drivers: Driver[], lapData: LapData[]): LeaderRow[] {
+function joinRows(drivers: any[], lapData: LapData[]): any[] {
   const byCar = new Map<number, LapData>(lapData.map((lap) => [lap.carNumber, lap]))
-
   return drivers
     .map((driver) => {
       const lap = byCar.get(driver.carNumber)
@@ -78,33 +62,36 @@ function joinRows(drivers: Driver[], lapData: LapData[]): LeaderRow[] {
 }
 
 export function LeaderBoardPanel() {
+  // Maini loogika: sessions
+  const [sessions, setSessions] = useState<RaceSession[]>([])
+  // PR-ist: RaceState ja täisekraan
   const [state, setState] = useState<RaceState | null>(null)
   const [isFullscreen, setIsFullscreen] = useState(false)
 
   useEffect(() => {
+    // Maini event
+    const onSessionsUpdated = (updatedSessions: RaceSession[]) => setSessions(updatedSessions)
+    appSocket.on('sessions:updated', onSessionsUpdated)
+    appSocket.emit('state:get', (state) => {
+      setSessions(state.sessions)
+      setState(state)
+    })
+    // PR-ist: RaceState eventid
     const onStateUpdated = (nextState: RaceState) => setState(nextState)
     const onRaceTick = (timeRemainingSeconds: number) => {
       setState((prev) => (prev ? { ...prev, timeRemainingSeconds } : prev))
     }
-
     const fetchState = () => {
       appSocket.emit('state:get', (currentState: RaceState) => setState(currentState))
     }
-
-    const onFullscreenChange = () => {
-      setIsFullscreen(Boolean(document.fullscreenElement))
-    }
-
+    const onFullscreenChange = () => setIsFullscreen(Boolean(document.fullscreenElement))
     appSocket.on('connect', fetchState)
     appSocket.on('state:updated', onStateUpdated)
     appSocket.on('race:tick', onRaceTick)
     document.addEventListener('fullscreenchange', onFullscreenChange)
-
-    if (appSocket.connected) {
-      fetchState()
-    }
-
+    if (appSocket.connected) fetchState()
     return () => {
+      appSocket.off('sessions:updated', onSessionsUpdated)
       appSocket.off('connect', fetchState)
       appSocket.off('state:updated', onStateUpdated)
       appSocket.off('race:tick', onRaceTick)
@@ -112,8 +99,8 @@ export function LeaderBoardPanel() {
     }
   }, [])
 
+  // PR-ist: displaySession ja rows
   const displaySession = useMemo(() => (state ? getDisplaySession(state) : null), [state])
-
   const rows = useMemo(() => {
     if (!state || !displaySession) return []
     const laps = state.activeSessionId === displaySession.id ? state.lapData : []
@@ -128,7 +115,8 @@ export function LeaderBoardPanel() {
     await document.exitFullscreen()
   }
 
-  if (!state) {
+  // Maini fallback: kui sessions puuduvad
+  if (!sessions.length && !state) {
     return (
       <section className="panel">
         <h2>Leader Board</h2>
@@ -137,54 +125,80 @@ export function LeaderBoardPanel() {
     )
   }
 
-  return (
-    <section className="panel leaderboard-panel">
-      <header className="leaderboard-header">
-        <h2>Leader Board</h2>
-        <button type="button" onClick={toggleFullscreen}>
-          {isFullscreen ? 'Exit Full Screen' : 'Full Screen'}
-        </button>
-      </header>
-
-      <div className="leaderboard-meta">
-        <span>Mode: {modeLabel(state.mode)}</span>
-        <span>Time Remaining: {formatTime(state.timeRemainingSeconds)}</span>
-        <span>Session: {displaySession?.label ?? 'No session'}</span>
-      </div>
-
-      {!displaySession ? (
-        <p>No active or finished session yet.</p>
-      ) : (
-        <table className="leaderboard-table">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Car</th>
-              <th>Driver</th>
-              <th>Current Lap</th>
-              <th>Fastest Lap</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row) => (
-              <tr key={row.carNumber}>
-                <td>
-                  <span
-                    className="car-badge"
-                    style={{ backgroundColor: getCarColor(row.carNumber) }}
-                    title={`Car ${row.carNumber}`}
-                  >
-                  🚗 Car {row.carNumber}
-                  </span>
-                </td>
-                <td>{row.carNumber}</td>
-                <td>{row.driverName}</td>
-                <td>{row.currentLap}</td>
-                <td>{formatLap(row.fastestLapMs)}</td>
+  // PR-ist: kui state olemas, näita detailset tabelit
+  if (state) {
+    return (
+      <section className="panel leaderboard-panel">
+        <header className="leaderboard-header">
+          <h2>Leader Board</h2>
+          <button type="button" onClick={toggleFullscreen}>
+            {isFullscreen ? 'Exit Full Screen' : 'Full Screen'}
+          </button>
+        </header>
+        <div className="leaderboard-meta">
+          <span>Mode: {modeLabel(state.mode)}</span>
+          <span>Time Remaining: {formatTime(state.timeRemainingSeconds)}</span>
+          <span>Session: {displaySession?.label ?? 'No session'}</span>
+        </div>
+        {displaySession == null ? (
+          <p>No active or finished session yet.</p>
+        ) : (
+          <table className="leaderboard-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Car</th>
+                <th>Driver</th>
+                <th>Current Lap</th>
+                <th>Fastest Lap</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {rows.map((row) => (
+                <tr key={row.carNumber}>
+                  <td>
+                    <span
+                      className="car-badge"
+                      style={{ backgroundColor: getCarColor(row.carNumber) }}
+                      title={`Car ${row.carNumber}`}
+                    >
+                      🚗 Car {row.carNumber}
+                    </span>
+                  </td>
+                  <td>{row.carNumber}</td>
+                  <td>{row.driverName}</td>
+                  <td>{row.currentLap}</td>
+                  <td>{formatLap(row.fastestLapMs)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </section>
+    )
+  }
+
+  // Maini fallback: lihtne sessioonide loetelu
+  return (
+    <section className="panel">
+      <h2>Leader Board</h2>
+      <p>Real-time race ranking, fastest lap, current lap and timer will appear here.</p>
+      {sessions.length === 0 ? (
+        <p>No sessions yet.</p>
+      ) : (
+        sessions.map((session) => (
+          <div key={session.id} className="leaderboard-session">
+            <h3>{session.label}</h3>
+            <p>Status: {session.status}</p>
+            <ul>
+              {session.drivers.map((driver) => (
+                <li key={driver.id}>
+                  Car {driver.carNumber}: {driver.name}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))
       )}
     </section>
   )

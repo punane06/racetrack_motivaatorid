@@ -60,6 +60,21 @@ Run in the project root:
 npm install
 ```
 
+## Running the whole project (backend + frontend)
+
+To start both the backend (server) and frontend (client) at once, run:
+
+```bash
+npm run dev
+```
+
+This will launch both the server and the client in parallel using [concurrently](https://www.npmjs.com/package/concurrently).
+
+- The server will be available at the port defined in your server config (e.g. http://localhost:3000)
+- The client (React app) will be available at http://localhost:5173 (or the port shown in the terminal)
+
+You can then access all views in your browser as described in the project documentation.
+
 ## Run
 
 Development mode:

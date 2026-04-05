@@ -1,4 +1,4 @@
-import type { EmployeeRole } from '@shared/constants'
+import type { EmployeeRole } from 'shared/dist/constants.js'
 
 interface AccessKeys {
   receptionist: string

@@ -27,7 +27,7 @@
       "@shared/*": [
         "../shared/*"
       ]
-    }
+    },
   },
   "include": ["src", "../shared/*.ts"]
 }

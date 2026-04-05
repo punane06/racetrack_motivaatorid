@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-
 import type { RaceState } from '@shared/race'
 import { appSocket } from '@/lib/socket'
 
@@ -10,19 +9,17 @@ function formatTime(seconds: number): string {
 }
 
 export function CountdownPanel() {
-  const [state, setState] = useState<RaceState | null>(null)
+  const [raceState, setRaceState] = useState<RaceState | null>(null)
   const [isFullscreen, setIsFullscreen] = useState(false)
 
   useEffect(() => {
-    const onStateUpdated = (nextState: RaceState) => setState(nextState)
-    const onRaceTick = (timeRemainingSeconds: number) => {
-      setState((prev) => (prev ? { ...prev, timeRemainingSeconds } : prev))
+    const onStateUpdated = (state: RaceState) => setRaceState(state)
+    const onRaceTick = (remainingSeconds: number) => {
+      setRaceState((prev) => (prev ? { ...prev, timeRemainingSeconds: remainingSeconds } : prev))
     }
-
     const fetchState = () => {
-      appSocket.emit('state:get', (currentState: RaceState) => setState(currentState))
+      appSocket.emit('state:get', (state: RaceState) => setRaceState(state))
     }
-
     const onFullscreenChange = () => setIsFullscreen(Boolean(document.fullscreenElement))
 
     appSocket.on('connect', fetchState)
@@ -48,7 +45,7 @@ export function CountdownPanel() {
     await document.exitFullscreen()
   }
 
-  if (!state) {
+  if (!raceState) {
     return (
       <section className="panel countdown-panel">
         <h2>Race Countdown</h2>
@@ -66,8 +63,9 @@ export function CountdownPanel() {
         </button>
       </header>
 
-      <div className="countdown-time">{formatTime(state.timeRemainingSeconds)}</div>
-      {!state.activeSessionId ? <p>Waiting for race start</p> : null}
+      <div className="countdown-time">{formatTime(raceState.timeRemainingSeconds)}</div>
+      {raceState.activeSessionId == null ? <p>Waiting for race start</p> : null}
+      <p>Race status: {raceState.status ?? 'idle'}</p>
     </section>
   )
 }

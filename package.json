@@ -2,9 +2,9 @@
   "name": "racetrack-info-screens",
   "version": "1.0.0",
   "scripts": {
-    "start": "npm run start -w server",
-    "dev": "concurrently \"npm run dev -w server\" \"npm run dev -w client\"",
-    "build": "npm run build -w shared && npm run build -w server && npm run build -w client"
+    "start": "npm run start --prefix server",
+    "dev": "concurrently \"npm --prefix server run dev\" \"npm --prefix client run dev\"",
+    "build": "npm run build --prefix shared && npm run build --prefix server && npm run build --prefix client"
   },
   "repository": {
     "type": "git",

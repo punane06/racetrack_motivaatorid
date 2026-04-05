@@ -5,11 +5,11 @@ import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { Server } from 'socket.io'
 
-import { EMPLOYEE_ROUTES, PUBLIC_ROUTES } from '@shared/constants'
-import type { ClientToServerEvents, ServerToClientEvents } from '@shared/events'
-import type { LapData } from '@shared/lap'
-import type { RaceMode } from '@shared/race'
-import type { RaceSession } from '@shared/session'
+import { EMPLOYEE_ROUTES, PUBLIC_ROUTES } from 'shared/dist/constants.js'
+import type { ClientToServerEvents, ServerToClientEvents } from 'shared/dist/events.js'
+import type { LapData } from 'shared/dist/lap.js'
+import type { RaceMode } from 'shared/dist/race.js'
+import type { RaceSession } from 'shared/dist/session.js'
 import { loadEnv, printEnvUsage } from './config/env.js'
 import { validateAccess, buildAccessKeys } from './socket/auth.js'
 import { registerSessionHandlers } from './socket/handlers/sessionHandlers.js'
@@ -64,18 +64,18 @@ function findSessionById(sessionId: string | null): RaceSession | null {
   if (!sessionId) {
     return null
   }
-  return raceState.sessions.find((session) => session.id === sessionId) ?? null
+  return raceState.sessions.find((session: RaceSession) => session.id === sessionId) ?? null
 }
 
 function recomputeUpcomingSessionId(excludeId: string | null = null): string | null {
   const nextUpcoming = raceState.sessions.find(
-    (session) => session.status === 'upcoming' && session.id !== excludeId,
+    (session: RaceSession) => session.status === 'upcoming' && session.id !== excludeId,
   )
   return nextUpcoming?.id ?? null
 }
 
 function createLapDataForActiveSession(activeSession: RaceSession): LapData[] {
-  return activeSession.drivers.map((driver) => ({
+  return activeSession.drivers.map((driver: import('shared/dist/session.js').Driver) => ({
     carNumber: driver.carNumber,
     currentLap: 0,
     fastestLapMs: null,
@@ -137,12 +137,12 @@ function setRaceMode(socketId: string, mode: RaceMode) {
 io.on('connection', (socket) => {
   registerSessionHandlers(io, socket, raceState)
 
-  socket.on('auth:check', async (payload, callback) => {
+  socket.on('auth:check', async (payload: { role: import('shared/dist/constants.js').EmployeeRole; key: string }, callback: (result: { ok: boolean; message?: string }) => void) => {
     const ok = await validateAccess(payload.role, payload.key, accessKeys)
     callback(ok ? { ok: true } : { ok: false, message: 'Invalid access key.' })
   })
 
-  socket.on('state:get', (callback) => {
+  socket.on('state:get', (callback: (state: typeof raceState) => void) => {
     callback(raceState)
   })
 
@@ -176,17 +176,17 @@ io.on('connection', (socket) => {
     startRaceTimer()
   })
 
-  socket.on('race:mode_change', (mode) => {
+  socket.on('race:mode_change', (mode: RaceMode) => {
     setRaceMode(socket.id, mode)
   })
 
-  socket.on('lap:record', (carNumber) => {
+  socket.on('lap:record', (carNumber: number) => {
     if (!raceState.activeSessionId) {
       socket.emit('operation:error', 'No active race session.')
       return
     }
 
-    const lap = raceState.lapData.find((item) => item.carNumber === carNumber)
+    const lap = raceState.lapData.find((item: LapData) => item.carNumber === carNumber)
     if (!lap) {
       socket.emit('operation:error', `Car #${carNumber} is not in active session.`)
       return
@@ -244,7 +244,7 @@ io.on('connection', (socket) => {
   })
 })
 
-httpServer.listen(env.port, '0.0.0.0', () => {
-  console.log(`Server running on http://0.0.0.0:${env.port}`)
+httpServer.listen(env.port, '127.0.0.1', () => {
+  console.log(`Server running on http://127.0.0.1:${env.port}`)
   console.log(`Race duration: ${env.raceDurationSeconds} seconds`)
 })
