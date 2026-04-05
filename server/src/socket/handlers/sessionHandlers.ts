@@ -15,10 +15,15 @@ export function registerSessionHandlers(
   socket: Socket<ClientToServerEvents, ServerToClientEvents>,
   raceState: RaceState,
 ) {
+  const emitSessionsAndState = () => {
+    io.emit('sessions:updated', raceState.sessions)
+    io.emit('state:updated', raceState)
+  }
+
   socket.on('driver:add', (payload) => {
     try {
       addDriver(raceState, payload.sessionId, payload.name)
-      io.emit('sessions:updated', raceState.sessions)
+      emitSessionsAndState()
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
       socket.emit('operation:error', message)
@@ -28,7 +33,7 @@ export function registerSessionHandlers(
   socket.on('driver:edit', (payload) => {
     try {
       editDriver(raceState, payload.sessionId, payload.driverId, payload.name)
-      io.emit('sessions:updated', raceState.sessions)
+      emitSessionsAndState()
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
       socket.emit('operation:error', message)
@@ -38,7 +43,7 @@ export function registerSessionHandlers(
   socket.on('driver:remove', (payload) => {
     try {
       removeDriver(raceState, payload.sessionId, payload.driverId)
-      io.emit('sessions:updated', raceState.sessions)
+      emitSessionsAndState()
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
       socket.emit('operation:error', message)
@@ -48,7 +53,7 @@ export function registerSessionHandlers(
   socket.on('session:create', (label) => {
     try {
       createSession(raceState, label)
-      io.emit('sessions:updated', raceState.sessions)
+      emitSessionsAndState()
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
       socket.emit('operation:error', message)
@@ -58,7 +63,7 @@ export function registerSessionHandlers(
   socket.on('session:delete', (sessionId) => {
     try {
       deleteSession(raceState, sessionId)
-      io.emit('sessions:updated', raceState.sessions)
+      emitSessionsAndState()
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
       socket.emit('operation:error', message)
