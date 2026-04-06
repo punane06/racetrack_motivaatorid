@@ -1,1 +1,1 @@
-export * from '../../../../shared/dist/events.d.ts';
+export * from '../../../../@shared/events.d.ts';

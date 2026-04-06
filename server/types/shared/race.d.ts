@@ -1,1 +1,1 @@
-export * from '../../../../shared/dist/race.d.ts';
+export * from '../../../../@shared/race.d.ts';

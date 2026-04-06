@@ -1,1 +1,1 @@
-export * from '../../../../shared/dist/constants.d.ts';
+export * from '../../../../@shared/constants.d.ts';

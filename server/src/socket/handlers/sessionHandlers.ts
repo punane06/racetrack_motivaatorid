@@ -1,7 +1,7 @@
 import type { Server, Socket } from 'socket.io';
-import type { ClientToServerEvents, ServerToClientEvents } from 'shared/dist/events.js';
-import type { RaceState } from 'shared/dist/race.js';
-import type { RaceSession } from 'shared/dist/session.js';
+import type { ClientToServerEvents, ServerToClientEvents } from '@shared/events.js';
+import type { RaceState } from '@shared/race.js';
+import type { RaceSession } from '@shared/session.js';
 import { addDriver, createSession, deleteSession, editDriver, removeDriver } from '../../services/sessionService.js';
 
 let raceInterval: NodeJS.Timeout | null = null;

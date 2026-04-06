@@ -1,1 +1,1 @@
-export * from '../../../../shared/dist/session.d.ts';
+export * from '../../../../@shared/session.d.ts';

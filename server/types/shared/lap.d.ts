@@ -1,1 +1,1 @@
-export * from '../../../../shared/dist/lap.d.ts';
+export * from '../../../../@shared/lap.d.ts';

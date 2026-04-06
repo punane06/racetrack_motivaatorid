@@ -1,0 +1,11 @@
+{
+  "status": "idle",
+  "mode": "danger",
+  "activeSessionId": null,
+  "upcomingSessionId": null,
+  "sessions": [],
+  "timeRemainingSeconds": 60,
+  "startedAt": null,
+  "lapData": [],
+  "lastFinishedSessionId": null
+}
