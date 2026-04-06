@@ -7,13 +7,13 @@ import { createServer } from 'node:http'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { Server } from 'socket.io'
-import { EMPLOYEE_ROUTES, PUBLIC_ROUTES } from 'shared/dist/constants.js'
-import type { ClientToServerEvents, ServerToClientEvents } from 'shared/dist/events.js'
+import { EMPLOYEE_ROUTES, PUBLIC_ROUTES } from '@shared/constants.js'
+import type { ClientToServerEvents, ServerToClientEvents } from '@shared/events.js'
 import { buildAccessKeys, validateAccess } from './socket/auth.js'
 import { registerSessionHandlers } from './socket/handlers/sessionHandlers.js'
 import { createInitialState } from './state/store.js'
 import { loadPersistedState, savePersistedState } from './state/persist.js'
-import type { LapData } from 'shared/dist/lap.js'
+import type { LapData } from '@shared/lap.js'
 
 // 1. Load and validate env
 let env

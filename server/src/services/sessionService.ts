@@ -1,5 +1,5 @@
-import type { RaceState } from 'shared/dist/race.js';
-import type { RaceSession, Driver } from 'shared/dist/session.js';
+import type { RaceState } from '@shared/race.js';
+import type { RaceSession, Driver } from '@shared/session.js';
 import { AppError } from '../errors/AppError.js';
 import { ErrorCodes } from '../errors/errorCodes.js';
 
