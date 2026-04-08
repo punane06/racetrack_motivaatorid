@@ -9,6 +9,14 @@ client/.vite/
 .env.*
 !.env.example
 
+# Ignore backup files
+*.bak
+
+# Ignore build output
+/shared/dist/
+/server/dist/
+/client/dist/
+
 # macOS
 .DS_Store
 **/.DS_Store
