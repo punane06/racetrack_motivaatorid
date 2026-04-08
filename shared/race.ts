@@ -11,6 +11,7 @@ export interface RaceState {
   upcomingSessionId: string | null
   sessions: RaceSession[]
   timeRemainingSeconds: number
+  raceDurationSeconds: number
   startedAt: number | null
   lapData: LapData[]
   lastFinishedSessionId: string | null

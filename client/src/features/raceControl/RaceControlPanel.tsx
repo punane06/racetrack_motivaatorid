@@ -20,12 +20,16 @@ export function RaceControlPanel() {
     appSocket.emit('race:start')
   }
 
+  const finishRace = () => {
+    appSocket.emit('race-finished')
+  }
+
   const endSession = () => {
     appSocket.emit('race:end_session')
   }
 
   const changeMode = (mode: RaceMode) => {
-    appSocket.emit('race:mode_change', mode)
+    appSocket.emit('race-mode-change', mode)
   }
 
   return (
@@ -35,6 +39,7 @@ export function RaceControlPanel() {
       <p>Current status: {raceState?.status ?? 'idle'}</p>
       <p>Race mode: {raceState?.mode ?? 'danger'}</p>
       <button onClick={startRace}>Start Race</button>
+      <button onClick={finishRace}>Finish Race</button>
       <button onClick={endSession}>End Session</button>
       <div style={{ marginTop: '0.75rem' }}>
         Mode:

@@ -91,8 +91,8 @@ const io = new Server<ClientToServerEvents, ServerToClientEvents>(httpServer, {
   cors: { origin: '*' },
 })
 
-httpServer.listen(env.port, '127.0.0.1', () => {
-  console.log(`Server running on http://127.0.0.1:${env.port}`)
+httpServer.listen(env.port, '0.0.0.0', () => {
+  console.log(`Server running on http://0.0.0.0:${env.port}`)
   console.log(`Race duration: ${env.raceDurationSeconds} seconds`)
 })
 
@@ -109,7 +109,7 @@ io.on('connection', (socket) => {
     callback({ ok, message: ok ? undefined : 'Invalid access key' })
   })
 
-  socket.on('lap:record', (carNumber: number) => {
+  socket.on('lap-recorded', (carNumber: number) => {
     if (raceState.status !== 'running') return
     const now = Date.now()
     const existing = raceState.lapData.find((d: LapData) => d.carNumber === carNumber)
@@ -123,7 +123,7 @@ io.on('connection', (socket) => {
     } else {
       raceState.lapData.push({ carNumber, currentLap: 1, fastestLapMs: null, lastCrossedAt: now })
     }
-    io.emit('lap:recorded', raceState.lapData)
+    io.emit('lap-recorded', raceState.lapData)
   })
 
   registerSessionHandlers(io, socket, raceState)
