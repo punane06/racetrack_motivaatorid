@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import type { DragEvent } from 'react'
-
 import type { Driver } from '@shared/session'
 import { DriverEditor } from './DriverEditor'
 import { getCarColor } from '@/lib/carColors'
@@ -8,8 +7,9 @@ import { getCarColor } from '@/lib/carColors'
 interface DriverCardProps {
   sessionId: string
   driver: Driver
-  onEdit: (sessionId: string, driverId: string, name: string) => void
-  onRemove: (sessionId: string, driverId: string) => void
+  onEdit?: (sessionId: string, driverId: string, name: string) => void
+  onRemove?: (sessionId: string, driverId: string) => void
+  sessionStatus?: string
 }
 
 interface DragDriverPayload {
@@ -18,11 +18,13 @@ interface DragDriverPayload {
   name: string
 }
 
-export function DriverCard({ sessionId, driver, onEdit, onRemove }: DriverCardProps) {
+export function DriverCard({ sessionId, driver, onEdit, onRemove, sessionStatus }: DriverCardProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [isDragOverName, setIsDragOverName] = useState(false)
+  const isUpcoming = sessionStatus === 'upcoming'
 
   const onNameDragStart = (event: DragEvent<HTMLSpanElement>) => {
+    if (!isUpcoming || !onEdit) return
     event.dataTransfer.effectAllowed = 'copyMove'
     const payload: DragDriverPayload = { sessionId, id: driver.id, name: driver.name }
     event.dataTransfer.setData('application/x-driver-payload', JSON.stringify(payload))
@@ -31,6 +33,7 @@ export function DriverCard({ sessionId, driver, onEdit, onRemove }: DriverCardPr
   }
 
   const onNameDragOver = (event: DragEvent<HTMLSpanElement>) => {
+    if (!isUpcoming || !onEdit) return
     event.preventDefault()
     event.dataTransfer.dropEffect = 'move'
     setIsDragOverName(true)
@@ -41,6 +44,7 @@ export function DriverCard({ sessionId, driver, onEdit, onRemove }: DriverCardPr
   }
 
   const onNameDrop = (event: DragEvent<HTMLSpanElement>) => {
+    if (!isUpcoming || !onEdit) return
     event.preventDefault()
     setIsDragOverName(false)
 
@@ -76,7 +80,7 @@ export function DriverCard({ sessionId, driver, onEdit, onRemove }: DriverCardPr
     onEdit(sessionId, driver.id, normalizedName)
   }
 
-  if (isEditing) {
+  if (isEditing && isUpcoming && onEdit) {
     return (
       <li className="driver-card editing">
         <DriverEditor
@@ -92,33 +96,35 @@ export function DriverCard({ sessionId, driver, onEdit, onRemove }: DriverCardPr
       </li>
     )
   }
+  }
 
   return (
-    <li className="driver-card">
-      <div className="driver-main">
-        <span
-          className="car-badge"
-          style={{ backgroundColor: getCarColor(driver.carNumber) }}
-        >
-          🚗 Car {driver.carNumber}
-        </span>
-        <span
-          draggable
-          onDragStart={onNameDragStart}
-          onDragOver={onNameDragOver}
-          onDragLeave={onNameDragLeave}
-          onDrop={onNameDrop}
-          title="Drag this name onto another driver name"
-          style={{
-            padding: '0.2rem 0.4rem',
-            borderRadius: '0.35rem',
-            cursor: 'grab',
-            backgroundColor: isDragOverName ? '#e2e8f0' : 'transparent',
-            transition: 'background-color 150ms ease',
-          }}
-        >
-          {driver.name}
-        </span>
+    <li className="driver-card" style={{ background: getCarColor(driver.carNumber) }}>
+      <span
+        className="driver-name"
+        draggable={isUpcoming && !!onEdit}
+        onDragStart={onNameDragStart}
+        onDragOver={onNameDragOver}
+        onDragLeave={onNameDragLeave}
+        onDrop={onNameDrop}
+        style={{
+          background: isDragOverName ? '#e0e7ef' : undefined,
+        }}
+      >
+        {driver.name}
+      </span>
+      <span className="car-number">Car {driver.carNumber}</span>
+      {isUpcoming && onEdit && onRemove ? (
+        <div className="driver-actions">
+          <button onClick={() => setIsEditing(true)}>Edit</button>
+          <button className="danger" onClick={() => onRemove(sessionId, driver.id)}>
+            Remove
+          </button>
+        </div>
+      ) : null}
+    </li>
+  )
+}
       </div>
 
       <div className="driver-actions">

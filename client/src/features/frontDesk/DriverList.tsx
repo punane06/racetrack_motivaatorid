@@ -5,11 +5,12 @@ import { DriverCard } from './DriverCard'
 interface DriverListProps {
   sessionId: string
   drivers: Driver[]
-  onEdit: (sessionId: string, driverId: string, name: string) => void
-  onRemove: (sessionId: string, driverId: string) => void
+  onEdit?: (sessionId: string, driverId: string, name: string) => void
+  onRemove?: (sessionId: string, driverId: string) => void
+  sessionStatus?: string
 }
 
-export function DriverList({ sessionId, drivers, onEdit, onRemove }: DriverListProps) {
+export function DriverList({ sessionId, drivers, onEdit, onRemove, sessionStatus }: Readonly<DriverListProps>) {
   if (drivers.length === 0) {
     return <p className="muted">No drivers added yet.</p>
   }
@@ -26,6 +27,7 @@ export function DriverList({ sessionId, drivers, onEdit, onRemove }: DriverListP
             driver={driver}
             onEdit={onEdit}
             onRemove={onRemove}
+            sessionStatus={sessionStatus}
           />
         ))}
     </ul>
