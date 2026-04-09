@@ -20,7 +20,7 @@ export interface ClientToServerEvents {
   'race-mode-change': (mode: RaceMode) => void
   'race-finished': () => void
   'race:end_session': () => void
-  'lap-recorded': (carNumber: number) => void
+  'lap:record': (carNumber: number) => void
   'session:create': (label: string) => void
   'session:delete': (sessionId: string) => void
   'driver:add': (payload: { sessionId: string; name: string }) => void
@@ -36,6 +36,7 @@ export interface ServerToClientEvents {
   'race-finished': (state: RaceState) => void
   'next-session-updated': (state: RaceState) => void
   'sessions:updated': (sessions: RaceSession[]) => void
+  'leaderboard:update': (leaderboard: unknown) => void
   'auth:required': () => void
   'operation:error': (message: string) => void
 }

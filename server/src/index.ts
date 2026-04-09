@@ -109,23 +109,6 @@ io.on('connection', (socket) => {
     callback({ ok, message: ok ? undefined : 'Invalid access key' })
   })
 
-  socket.on('lap-recorded', (carNumber: number) => {
-    if (raceState.status !== 'running') return
-    const now = Date.now()
-    const existing = raceState.lapData.find((d: LapData) => d.carNumber === carNumber)
-    if (existing) {
-      const lapMs = existing.lastCrossedAt === null ? null : now - existing.lastCrossedAt
-      if (lapMs !== null && (existing.fastestLapMs === null || lapMs < existing.fastestLapMs)) {
-        existing.fastestLapMs = lapMs
-      }
-      existing.currentLap += 1
-      existing.lastCrossedAt = now
-    } else {
-      raceState.lapData.push({ carNumber, currentLap: 1, fastestLapMs: null, lastCrossedAt: now })
-    }
-    io.emit('lap-recorded', raceState.lapData)
-  })
-
   registerSessionHandlers(io, socket, raceState)
 
   socket.on('disconnect', () => {
