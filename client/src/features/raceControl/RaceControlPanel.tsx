@@ -25,7 +25,7 @@ export function RaceControlPanel() {
 
   const startRace = () => appSocket.emit('race:start');
   const endSession = () => appSocket.emit('race:end_session');
-  const changeMode = (mode: RaceMode) => appSocket.emit('race:mode_change', mode);
+  const changeMode = (mode: RaceMode) => appSocket.emit('race-mode-change', mode);
 
   // Helper: get upcoming session
   const upcomingSession = raceState?.upcomingSessionId

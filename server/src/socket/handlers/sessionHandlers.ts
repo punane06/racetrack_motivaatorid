@@ -13,7 +13,14 @@ function broadcastState(io: Server<ClientToServerEvents, ServerToClientEvents>, 
 function startRace(io: Server<ClientToServerEvents, ServerToClientEvents>, raceState: RaceState) {
   if (raceState.status === 'running' || !raceState.upcomingSessionId) return;
   raceState.status = 'running';
+  raceState.mode = 'safe';
+  raceState.timeRemainingSeconds = raceState.raceDurationSeconds;
+  raceState.lapData = []
   raceState.activeSessionId = raceState.upcomingSessionId;
+  const upcomingSession = raceState.sessions.find((s: RaceSession) => s.id === raceState.activeSessionId)
+  if (upcomingSession) {
+    upcomingSession.status = 'active'
+  }
   raceState.upcomingSessionId = null;
   raceState.startedAt = Date.now();
   if (raceInterval) {
@@ -31,13 +38,16 @@ function startRace(io: Server<ClientToServerEvents, ServerToClientEvents>, raceS
         raceInterval = null;
       }
       raceState.status = 'finished';
+      raceState.mode = 'finish';
       io.emit('race:tick', 0);
+      io.emit('race-finished', raceState);
       broadcastState(io, raceState);
     }
   }, 1000);
 }
 
 function setRaceMode(io: Server<ClientToServerEvents, ServerToClientEvents>, raceState: RaceState, mode: string) {
+  if (raceState.status === 'finished') return;
   if (!['safe', 'hazard', 'danger', 'finish'].includes(mode)) return;
   const raceMode = mode as RaceState['mode'];
   raceState.mode = raceMode;
@@ -53,6 +63,7 @@ function endSession(io: Server<ClientToServerEvents, ServerToClientEvents>, race
   }
   raceState.activeSessionId = null;
   raceState.status = 'idle';
+  raceState.mode = 'danger';
   if (raceInterval) {
     clearInterval(raceInterval);
     raceInterval = null;
@@ -67,6 +78,7 @@ export function registerSessionHandlers(
 ) {
   const emitSessionsAndState = () => {
     io.emit('sessions:updated', raceState.sessions);
+    io.emit('next-session-updated', raceState);
     io.emit('state:updated', raceState);
   };
 
@@ -130,10 +142,27 @@ export function registerSessionHandlers(
     }
   });
 
-  socket.on('race:mode_change', (mode: string) => {
+  socket.on('race-mode-change', (mode: string) => {
     try {
       setRaceMode(io, raceState, mode);
       emitSessionsAndState();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      socket.emit('operation:error', message);
+    }
+  });
+
+  socket.on('race-finished', () => {
+    try {
+      if (raceState.status !== 'running') return;
+      raceState.status = 'finished';
+      raceState.mode = 'finish';
+      if (raceInterval) {
+        clearInterval(raceInterval);
+        raceInterval = null;
+      }
+      io.emit('race-finished', raceState);
+      broadcastState(io, raceState);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       socket.emit('operation:error', message);

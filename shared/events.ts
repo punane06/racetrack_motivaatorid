@@ -17,9 +17,10 @@ export interface ClientToServerEvents {
   'auth:check': (payload: AccessCheckPayload, callback: (result: AccessCheckResult) => void) => void
   'state:get': (callback: (state: RaceState) => void) => void
   'race:start': () => void
-  'race:mode_change': (mode: RaceMode) => void
+  'race-mode-change': (mode: RaceMode) => void
+  'race-finished': () => void
   'race:end_session': () => void
-  'lap:record': (carNumber: number) => void
+  'lap-recorded': (carNumber: number) => void
   'session:create': (label: string) => void
   'session:delete': (sessionId: string) => void
   'driver:add': (payload: { sessionId: string; name: string }) => void
@@ -29,9 +30,11 @@ export interface ClientToServerEvents {
 
 export interface ServerToClientEvents {
   'state:updated': (state: RaceState) => void
-  'lap:recorded': (lapData: LapData[]) => void
+  'lap-recorded': (lapData: LapData[]) => void
   'race:tick': (timeRemainingSeconds: number) => void
   'race:mode': (mode: RaceMode) => void
+  'race-finished': (state: RaceState) => void
+  'next-session-updated': (state: RaceState) => void
   'sessions:updated': (sessions: RaceSession[]) => void
   'auth:required': () => void
   'operation:error': (message: string) => void

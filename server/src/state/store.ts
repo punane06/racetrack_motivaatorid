@@ -8,6 +8,7 @@ export function createInitialState(raceDurationSeconds: number): RaceState {
     upcomingSessionId: null,
     sessions: [],
     timeRemainingSeconds: raceDurationSeconds,
+    raceDurationSeconds,
     startedAt: null,
     lapData: [],
     lastFinishedSessionId: null,

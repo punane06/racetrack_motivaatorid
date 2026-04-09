@@ -1,9 +1,64 @@
 {
   "status": "idle",
-  "mode": "danger",
+  "mode": "finish",
   "activeSessionId": null,
-  "upcomingSessionId": null,
-  "sessions": [],
+  "upcomingSessionId": "331e9489-eb70-43f3-88ac-aea661b1d8d7",
+  "sessions": [
+    {
+      "id": "331e9489-eb70-43f3-88ac-aea661b1d8d7",
+      "label": "Session 1",
+      "drivers": [
+        {
+          "id": "d113e4c3-a02c-4633-8020-72ce4b9e7b87",
+          "name": "Serle",
+          "carNumber": 1
+        },
+        {
+          "id": "c1148c2d-46a9-40a8-8f30-65cbc2579a98",
+          "name": "Piret",
+          "carNumber": 2
+        },
+        {
+          "id": "b1cbc435-8861-48ad-943c-3abcb90f50d6",
+          "name": "Kati-Helen",
+          "carNumber": 3
+        },
+        {
+          "id": "1cd8f2ae-9d54-4380-8b50-61c6e20845cb",
+          "name": "Kadi",
+          "carNumber": 4
+        }
+      ],
+      "status": "upcoming"
+    },
+    {
+      "id": "8d936759-b1e9-4a01-ae65-9390c6712af4",
+      "label": "Session 2",
+      "drivers": [
+        {
+          "id": "661db25a-6905-4317-bf2b-512d7e263f6b",
+          "name": "Kati-Helen",
+          "carNumber": 1
+        },
+        {
+          "id": "812170b9-c6b9-4ecc-8239-3601ec9bc460",
+          "name": "Kadi",
+          "carNumber": 2
+        },
+        {
+          "id": "2e57df7f-dee9-454b-8b77-86ee62ce7bb1",
+          "name": "Serle",
+          "carNumber": 3
+        },
+        {
+          "id": "08c66079-f6d0-4163-8f87-49ca3000aa45",
+          "name": "Piret",
+          "carNumber": 4
+        }
+      ],
+      "status": "upcoming"
+    }
+  ],
   "timeRemainingSeconds": 60,
   "startedAt": null,
   "lapData": [],
