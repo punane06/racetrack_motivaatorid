@@ -23,7 +23,8 @@ export function SessionCard({
   onEditDriver,
   onRemoveDriver,
 }: Readonly<SessionCardProps>) {
-  const isUpcoming = session.status === 'upcoming'
+  const isUpcoming = session.status === 'upcoming';
+  // Only show controls if session is upcoming
   return (
     <article className="session-card">
       <header className="session-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -66,5 +67,5 @@ export function SessionCard({
         sessionStatus={session.status}
       />
     </article>
-  )
+  );
 }

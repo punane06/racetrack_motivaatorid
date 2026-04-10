@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { DragEvent } from 'react';
 import type { Driver } from '@shared/session';
 import { DriverEditor } from './DriverEditor';
-import { getCarColor } from '@/lib/carColors';
+import { getCarColor } from '../../lib/carColors';
 
 interface DriverCardProps {
   readonly sessionId: string;

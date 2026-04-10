@@ -74,7 +74,7 @@ export function FrontDeskPanel() {
   }
 
   // Näita ainult upcoming sessioone
-  const upcomingSessions = sessions.filter(s => s.status === 'upcoming')
+  const upcomingSessions = sessions.filter(s => s.status === 'upcoming');
 
   return (
     <section className="panel">
@@ -104,5 +104,5 @@ export function FrontDeskPanel() {
         onRemoveDriver={removeDriver}
       />
     </section>
-  )
+  );
 }
