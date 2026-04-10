@@ -37,6 +37,7 @@ export function RaceControlPanel() {
     ? raceState.sessions.find(s => s.id === raceState.activeSessionId)
     : null;
 
+
   // --- UI by phase ---
   let content = null;
   if (!raceState) {
@@ -58,15 +59,16 @@ export function RaceControlPanel() {
         <button
           style={{
             width: '100%',
-            padding: '1.2rem 0',
-            fontSize: '1.5rem',
+            padding: '1.5rem 0',
+            fontSize: '2rem',
             fontWeight: 700,
             background: '#2ecc40',
             color: '#fff',
             border: 'none',
-            borderRadius: 14,
+            borderRadius: 18,
             marginTop: 8,
             cursor: 'pointer',
+            letterSpacing: 1,
           }}
           onClick={startRace}
         >
@@ -78,30 +80,34 @@ export function RaceControlPanel() {
     // 2. Race in progress
     content = (
       <>
-        <div style={{ fontWeight: 600, fontSize: '1.2rem', marginBottom: 18 }}>Race in progress</div>
-        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 8 }}>
+        <div style={{ fontWeight: 600, fontSize: '1.5rem', marginBottom: 18 }}>Race in progress</div>
+        <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', marginBottom: 8 }}>
           {(['safe', 'hazard', 'danger', 'finish'] as RaceMode[]).map(mode => (
             <button
               key={mode}
               onClick={() => changeMode(mode)}
               style={{
                 flex: '1 1 40%',
-                minWidth: 90,
-                padding: '1.1rem 0.5rem',
-                fontSize: '1.1rem',
+                minWidth: 110,
+                padding: '1.5rem 0.5rem',
+                fontSize: '1.3rem',
                 fontWeight: 700,
-                borderRadius: 12,
-                border: raceState.mode === mode ? `3px solid #222` : '2px solid #d4dbe5',
+                borderRadius: 16,
+                border: raceState.mode === mode ? `4px solid #222` : '2px solid #d4dbe5',
                 background: MODE_COLORS[mode],
                 color: mode === 'hazard' ? '#222' : '#fff',
                 opacity: raceState.mode === mode ? 1 : 0.85,
-                boxShadow: raceState.mode === mode ? '0 2px 8px rgba(16,24,40,0.13)' : 'none',
+                boxShadow: raceState.mode === mode ? '0 2px 12px rgba(16,24,40,0.18)' : 'none',
                 outline: 'none',
                 cursor: 'pointer',
                 transition: 'all 0.15s',
+                marginBottom: 8,
               }}
             >
-              {mode.toUpperCase()}
+              {mode === 'safe' && 'SAFE'}
+              {mode === 'hazard' && 'HAZARD'}
+              {mode === 'danger' && 'DANGER'}
+              {mode === 'finish' && 'FINISH'}
             </button>
           ))}
         </div>
@@ -111,19 +117,20 @@ export function RaceControlPanel() {
     // 3. Race finished
     content = (
       <>
-        <div style={{ fontWeight: 600, fontSize: '1.2rem', marginBottom: 18 }}>Race finished</div>
+        <div style={{ fontWeight: 600, fontSize: '1.5rem', marginBottom: 18 }}>Race finished</div>
         <button
           style={{
             width: '100%',
-            padding: '1.2rem 0',
-            fontSize: '1.5rem',
+            padding: '1.5rem 0',
+            fontSize: '2rem',
             fontWeight: 700,
             background: '#222',
             color: '#fff',
             border: 'none',
-            borderRadius: 14,
+            borderRadius: 18,
             marginTop: 8,
             cursor: 'pointer',
+            letterSpacing: 1,
           }}
           onClick={endSession}
         >
@@ -133,12 +140,11 @@ export function RaceControlPanel() {
     );
   } else if (raceState.status === 'idle' && !raceState.upcomingSessionId) {
     // 4. No upcoming sessions
-    content = <div style={{ fontWeight: 600, fontSize: '1.2rem' }}>No upcoming sessions</div>;
+    content = <div style={{ fontWeight: 600, fontSize: '1.5rem', textAlign: 'center' }}>No upcoming sessions</div>;
   }
 
   return (
-    <section className="panel">
-      <h2>Race Control</h2>
+    <section className="panel" style={{ maxWidth: 420, margin: '0 auto', padding: '1.5rem 0.5rem' }}>
       {content}
     </section>
   );
