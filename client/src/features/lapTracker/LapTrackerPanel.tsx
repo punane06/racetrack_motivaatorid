@@ -46,7 +46,7 @@ export function LapTrackerPanel() {
   }, []);
 
   const handleLap = useCallback((carNumber: number) => {
-    appSocket.emit('lap:record', carNumber);
+    appSocket.emit('lap-recorded', carNumber);
   }, []);
 
   let content = null;
