@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import type { RaceMode, RaceState } from '@shared/race'
 import { appSocket } from '@/lib/socket'
 
-// Maini värvikaart fallbackiks
+// Main color palette as fallback
 const modeColor: Record<string, string> = {
   safe: '#2b8a3e',
   hazard: '#f59e0b',
@@ -10,7 +10,7 @@ const modeColor: Record<string, string> = {
   finish: '#0ea5e9',
 }
 
-// PR-ist: abifunktsioonid
+// From PR: helper functions
 function modeLabel(mode: RaceMode): string {
   switch (mode) {
     case 'safe': return 'GREEN FLAG'
@@ -31,14 +31,14 @@ function modeClass(mode: RaceMode): string {
 }
 
 export function RaceFlagsPanel() {
-  // Maini loogika: raceState
+  // Main logic: raceState
   const [raceState, setRaceState] = useState<RaceState | null>(null)
-  // PR-ist: mode ja täisekraan
+  // From PR: mode and fullscreen
   const [mode, setMode] = useState<RaceMode>('danger')
   const [isFullscreen, setIsFullscreen] = useState(false)
 
   useEffect(() => {
-    // Maini event
+    // Main event
     const onStateUpdated = (state: RaceState) => {
       setRaceState(state)
       setMode(state.mode)
@@ -48,7 +48,7 @@ export function RaceFlagsPanel() {
       setRaceState(state)
       setMode(state.mode)
     })
-    // PR-ist: täisekraan
+    // From PR: fullscreen
     const fetchState = () => {
       appSocket.emit('state:get', (state: RaceState) => setMode(state.mode))
     }
@@ -71,7 +71,7 @@ export function RaceFlagsPanel() {
     await document.exitFullscreen()
   }
 
-  // Maini fallback: kui raceState puudub
+  // Main fallback: if raceState is missing
   if (!raceState) {
     return (
       <section className="panel" style={{ textAlign: 'center' }}>
@@ -84,7 +84,7 @@ export function RaceFlagsPanel() {
     )
   }
 
-  // PR-ist: detailne vaade
+  // From PR: detailed view
   return (
     <section className={`panel race-flags-panel ${modeClass(mode)}`}>
       <header className="race-flags-header">

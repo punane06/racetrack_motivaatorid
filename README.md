@@ -323,3 +323,15 @@ Check that the server is emitting `sessions:updated` and the client is listening
 - Race duration is configurable via environment variables.
 - In development mode, the race timer may run shorter for testing.
 
+## Running frontend tests
+
+1. Install dependencies (only needed once):
+
+  npm install --prefix client
+
+2. Run all tests:
+
+  npm run --prefix client test
+
+This will automatically run the tests in the correct (client) folder using the jsdom environment. Tests are located in `client/src/__tests__/*.test.tsx`.
+
