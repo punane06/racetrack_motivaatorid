@@ -12,19 +12,42 @@ function broadcastState(io: Server<ClientToServerEvents, ServerToClientEvents>, 
 
 function startRace(io: Server<ClientToServerEvents, ServerToClientEvents>, raceState: RaceState) {
   if (raceState.status === 'running' || !raceState.upcomingSessionId) return;
+
   raceState.status = 'running';
-  raceState.activeSessionId = raceState.upcomingSessionId;
-  raceState.upcomingSessionId = null;
+
+  const startedSessionId = raceState.upcomingSessionId;
+  raceState.activeSessionId = startedSessionId;
+
+  const activeSession = raceState.sessions.find((s) => s.id === startedSessionId);
+  if (activeSession) {
+    activeSession.status = 'active';
+  }
+
+  const nextUpcoming =
+    raceState.sessions.find(
+      (session) => session.id !== startedSessionId && session.status === 'upcoming',
+    ) ??
+    raceState.sessions.find(
+      (session) => session.id !== startedSessionId && session.status !== 'finished',
+    );
+
+  raceState.upcomingSessionId = nextUpcoming ? nextUpcoming.id : null;
+
   raceState.startedAt = Date.now();
+  raceState.timeRemainingSeconds = 600;
+  raceState.lastFinishedSessionId = null;
+
   if (raceInterval) {
     clearInterval(raceInterval);
   }
+
   raceInterval = setInterval(() => {
     if (raceState.timeRemainingSeconds > 0) {
       raceState.timeRemainingSeconds -= 1;
       io.emit('race:tick', raceState.timeRemainingSeconds);
       broadcastState(io, raceState);
     }
+
     if (raceState.timeRemainingSeconds <= 0) {
       if (raceInterval) {
         clearInterval(raceInterval);
@@ -46,17 +69,26 @@ function setRaceMode(io: Server<ClientToServerEvents, ServerToClientEvents>, rac
 }
 
 function endSession(io: Server<ClientToServerEvents, ServerToClientEvents>, raceState: RaceState) {
+  let finishedSessionId: string | null = null;
+
   if (raceState.activeSessionId) {
     const activeSessionId = raceState.activeSessionId;
     const activeSession = raceState.sessions.find((s: RaceSession) => s.id === activeSessionId);
-    if (activeSession) activeSession.status = 'finished';
+    if (activeSession) {
+      activeSession.status = 'finished';
+      finishedSessionId = activeSession.id;
+    }
   }
+
+  raceState.lastFinishedSessionId = finishedSessionId;
   raceState.activeSessionId = null;
   raceState.status = 'idle';
+
   if (raceInterval) {
     clearInterval(raceInterval);
     raceInterval = null;
   }
+
   broadcastState(io, raceState);
 }
 

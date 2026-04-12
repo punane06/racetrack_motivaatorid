@@ -38,9 +38,10 @@ export function deleteSession(state: RaceState, sessionId: string): void {
     state.activeSessionId = null
   }
   if (state.upcomingSessionId === sessionId) {
-    console.log(`[SERVICE] Clearing upcomingSessionId`)
-    state.upcomingSessionId = null
-  }
+  const nextUpcoming = state.sessions.find((s) => s.status === 'upcoming') ?? null
+  console.log(`[SERVICE] Reassigning upcomingSessionId → ${nextUpcoming?.id ?? 'null'}`)
+  state.upcomingSessionId = nextUpcoming ? nextUpcoming.id : null
+  } 
 }
 
 export function addDriver(state: RaceState, sessionId: string, name: string): Driver {
