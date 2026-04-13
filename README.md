@@ -335,3 +335,62 @@ Check that the server is emitting `sessions:updated` and the client is listening
 
 This will automatically run the tests in the correct (client) folder using the jsdom environment. Tests are located in `client/src/__tests__/*.test.tsx`.
 
+---
+
+## 17. User Guide (Short Version)
+
+This project includes multiple real-time interfaces used by different racetrack roles.  
+Below is a short overview of how the system is used.  
+A full, detailed guide is available in:  
+**`USER_GUIDE.md`**
+
+### Receptionist — Front Desk (`/front-desk`)
+- Creates race sessions  
+- Adds/edits/removes drivers  
+- Drivers are auto‑assigned car numbers  
+- Sessions disappear once they become active or finished  
+- Drivers cannot be edited after the session is safe to start  
+
+### Safety Official — Race Control (`/race-control`)
+- Sees the next upcoming session  
+- Starts the race  
+- Controls track mode: Safe / Hazard / Danger / Finish  
+- Ends the race session  
+- Sees “No upcoming sessions” when all races are done  
+
+### Lap-line Observer — Lap Tracker (`/lap-line-tracker`)
+- Sees large tappable buttons for each car  
+- Records laps in real time  
+- Buttons disable between races  
+- Layout adapts to portrait/landscape  
+
+### Race Drivers — Next Race & Flags
+- **Next Race (`/next-race`)** shows upcoming session and drivers  
+- Automatically switches to the next session  
+- Shows “Proceed to paddock” after a race ends  
+- **Race Flags (`/race-flags`)** shows the current flag color in real time  
+
+### Guests — Leader Board (`/leader-board`)
+- Shows fastest lap, current lap, driver name, car number  
+- Ordered by fastest lap  
+- Shows remaining time and current flag mode  
+- Updates in real time  
+
+### Access Keys
+The following interfaces require access keys:  
+- Front Desk  
+- Race Control  
+- Lap-line Tracker  
+
+Keys must match environment variables:  
+`RECEPTIONIST_KEY`, `SAFETY_KEY`, `OBSERVER_KEY`
+
+Wrong key → 500ms delay → UI prompts again.
+
+### Persistence
+- Race state is autosaved every 2 seconds  
+- On server restart, the entire state is restored  
+- Delete `server/src/state/state.json` to reset the system  
+
+For the full detailed guide (all roles, flows, UI logic, and race lifecycle), see:  
+**`USER_GUIDE.md`**
