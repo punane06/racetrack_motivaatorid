@@ -50,21 +50,22 @@ export function AuthGate({ children }: Readonly<PropsWithChildren>) {
 
   return (
     <div className="auth-wrap">
-      <form className="auth-card" onSubmit={onSubmit}>
-        <h1>Employee Login</h1>
+      <form className="auth-card" onSubmit={onSubmit} aria-labelledby="auth-heading">
+        <h1 id="auth-heading">Employee Login</h1>
         <p>Enter the key before any real-time controls are available.</p>
         <label>
-          {label}
+          <span className="sr-only">{label}</span>
           <input
             type="password"
             value={value}
             onChange={(event) => setValue(event.target.value)}
-            placeholder="Enter access key"
+            placeholder={label}
+            aria-label={label}
             autoFocus
           />
         </label>
         <button type="submit">Unlock Interface</button>
-        {error && <div style={{ color: 'red', marginTop: 8 }}>{error}</div>}
+        {error && <div style={{ color: 'red', marginTop: 8 }} role="alert">{error}</div>}
       </form>
     </div>
   )
