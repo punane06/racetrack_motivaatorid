@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo } from 'react'
-import { appSocket } from '../../lib/socket'
+import { useRaceState } from '@/hooks/useRaceState'
+import { appSocket } from '@/lib/socket'
 import type { RaceSession } from '@shared/session'
 import type { LapData } from '@shared/lap'
 import type { RaceMode, RaceState } from '@shared/race'
@@ -62,39 +63,18 @@ function joinRows(drivers: any[], lapData: LapData[]): any[] {
 }
 
 export function LeaderBoardPanel() {
-  // Maini loogika: sessions
+  const state = useRaceState()
   const [sessions, setSessions] = useState<RaceSession[]>([])
-  // PR-ist: RaceState ja täisekraan
-  const [state, setState] = useState<RaceState | null>(null)
   const [isFullscreen, setIsFullscreen] = useState(false)
 
   useEffect(() => {
-    // Maini event
     const onSessionsUpdated = (updatedSessions: RaceSession[]) => setSessions(updatedSessions)
     appSocket.on('sessions:updated', onSessionsUpdated)
-    appSocket.emit('state:get', (state) => {
-      setSessions(state.sessions)
-      setState(state)
-    })
-    // PR-ist: RaceState eventid
-    const onStateUpdated = (nextState: RaceState) => setState(nextState)
-    const onRaceTick = (timeRemainingSeconds: number) => {
-      setState((prev) => (prev ? { ...prev, timeRemainingSeconds } : prev))
-    }
-    const fetchState = () => {
-      appSocket.emit('state:get', (currentState: RaceState) => setState(currentState))
-    }
+    appSocket.emit('state:get', (state: RaceState) => setSessions(state.sessions))
     const onFullscreenChange = () => setIsFullscreen(Boolean(document.fullscreenElement))
-    appSocket.on('connect', fetchState)
-    appSocket.on('state:updated', onStateUpdated)
-    appSocket.on('race:tick', onRaceTick)
     document.addEventListener('fullscreenchange', onFullscreenChange)
-    if (appSocket.connected) fetchState()
     return () => {
       appSocket.off('sessions:updated', onSessionsUpdated)
-      appSocket.off('connect', fetchState)
-      appSocket.off('state:updated', onStateUpdated)
-      appSocket.off('race:tick', onRaceTick)
       document.removeEventListener('fullscreenchange', onFullscreenChange)
     }
   }, [])
