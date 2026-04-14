@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { DragEvent } from 'react'
 import type { Driver } from '@shared/session'
+import { appSocket } from '@/lib/socket'
 import { DriverEditor } from './DriverEditor'
 import { getCarColor } from '@/lib/carColors'
 
@@ -22,6 +23,14 @@ export function DriverCard({ sessionId, driver, onEdit, onRemove, sessionStatus 
   const [isEditing, setIsEditing] = useState(false)
   const [isDragOverName, setIsDragOverName] = useState(false)
   const isUpcoming = sessionStatus === 'upcoming'
+
+  // Car selection logic (Prompt 11)
+  // Only allow car selection for upcoming sessions
+  // Find available car numbers (1-8 not assigned to other drivers, plus current)
+  const [carSelectError, setCarSelectError] = useState<string | null>(null)
+  const carNumbers = Array.from({ length: 8 }, (_, i) => i + 1)
+
+  // (removed unused takenCars)
 
   const onNameDragStart = (event: DragEvent<HTMLButtonElement>) => {
     if (!isUpcoming || !onEdit) return
@@ -123,7 +132,31 @@ export function DriverCard({ sessionId, driver, onEdit, onRemove, sessionStatus 
         >
           {driver.name}
         </button>
+        {/* Car select dropdown for upcoming session */}
+        {isUpcoming && (
+          <select
+            value={driver.carNumber}
+            style={{ marginLeft: 12 }}
+            onChange={e => {
+              const newCar = Number(e.target.value)
+              setCarSelectError(null)
+              appSocket.emit('driver:assign_car', {
+                sessionId,
+                driverId: driver.id,
+                carNumber: newCar,
+              })
+            }}
+            aria-label="Assign car number"
+          >
+            {carNumbers.map(num => (
+              <option key={num} value={num}>
+                Car {num}
+              </option>
+            ))}
+          </select>
+        )}
       </div>
+      {carSelectError && <div style={{ color: 'red' }}>{carSelectError}</div>}
       {isUpcoming && onEdit && onRemove && (
         <div className="driver-actions">
           <button onClick={() => setIsEditing(true)}>Edit</button>

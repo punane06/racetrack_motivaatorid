@@ -2,7 +2,7 @@ import type { Server, Socket } from 'socket.io';
 import type { ClientToServerEvents, ServerToClientEvents } from '@shared/events.js';
 import type { RaceState } from '@shared/race.js';
 import type { RaceSession } from '@shared/session.js';
-import { addDriver, createSession, deleteSession, editDriver, removeDriver } from '../../services/sessionService.js';
+import { addDriver, createSession, deleteSession, editDriver, removeDriver, assignCarToDriver } from '../../services/sessionService.js';
 import { recordLap } from '../../services/lapService.js';
 
 let raceInterval: NodeJS.Timeout | null = null;
@@ -104,6 +104,7 @@ function endSession(io: Server<ClientToServerEvents, ServerToClientEvents>, race
   broadcastState(io, raceState);
 }
 
+
 export function registerSessionHandlers(
   io: Server<ClientToServerEvents, ServerToClientEvents>,
   socket: Socket<ClientToServerEvents, ServerToClientEvents>,
@@ -113,6 +114,17 @@ export function registerSessionHandlers(
     io.emit('sessions:updated', raceState.sessions);
     io.emit('state:updated', raceState);
   };
+
+
+  socket.on('driver:assign_car', (payload: { sessionId: string; driverId: string; carNumber: number }) => {
+    try {
+      assignCarToDriver(raceState, payload.sessionId, payload.driverId, payload.carNumber);
+      emitSessionsAndState();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      socket.emit('operation:error', message);
+    }
+  });
 
   socket.on('driver:add', (payload: { sessionId: string; name: string }) => {
     try {
