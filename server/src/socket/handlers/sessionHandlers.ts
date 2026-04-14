@@ -11,6 +11,29 @@ function broadcastState(io: Server<ClientToServerEvents, ServerToClientEvents>, 
   io.emit('state:updated', raceState);
 }
 
+export function startRaceTimer(io: Server<ClientToServerEvents, ServerToClientEvents>, raceState: RaceState) {
+  if (raceInterval) {
+    clearInterval(raceInterval);
+  }
+  raceInterval = setInterval(() => {
+    if (raceState.timeRemainingSeconds > 0) {
+      raceState.timeRemainingSeconds -= 1;
+      io.emit('race:tick', raceState.timeRemainingSeconds);
+      broadcastState(io, raceState);
+    }
+    if (raceState.timeRemainingSeconds <= 0) {
+      if (raceInterval) {
+        clearInterval(raceInterval);
+        raceInterval = null;
+      }
+      raceState.status = 'finished';
+      raceState.mode = 'finish';
+      io.emit('race:tick', 0);
+      broadcastState(io, raceState);
+    }
+  }, 1000);
+}
+
 function startRace(io: Server<ClientToServerEvents, ServerToClientEvents>, raceState: RaceState) {
   if (raceState.status === 'running' || !raceState.upcomingSessionId) return;
 
@@ -35,30 +58,10 @@ function startRace(io: Server<ClientToServerEvents, ServerToClientEvents>, raceS
   raceState.upcomingSessionId = nextUpcoming ? nextUpcoming.id : null;
 
   raceState.startedAt = Date.now();
-  raceState.timeRemainingSeconds = 600;
+  raceState.timeRemainingSeconds = raceState.raceDurationSeconds ?? 600;
   raceState.lastFinishedSessionId = null;
 
-  if (raceInterval) {
-    clearInterval(raceInterval);
-  }
-
-  raceInterval = setInterval(() => {
-    if (raceState.timeRemainingSeconds > 0) {
-      raceState.timeRemainingSeconds -= 1;
-      io.emit('race:tick', raceState.timeRemainingSeconds);
-      broadcastState(io, raceState);
-    }
-
-    if (raceState.timeRemainingSeconds <= 0) {
-      if (raceInterval) {
-        clearInterval(raceInterval);
-        raceInterval = null;
-      }
-      raceState.status = 'finished';
-      io.emit('race:tick', 0);
-      broadcastState(io, raceState);
-    }
-  }, 1000);
+  startRaceTimer(io, raceState);
 }
 
 function setRaceMode(io: Server<ClientToServerEvents, ServerToClientEvents>, raceState: RaceState, mode: string) {
