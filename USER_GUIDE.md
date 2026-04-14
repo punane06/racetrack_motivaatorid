@@ -56,7 +56,7 @@ A typical race flow:
 3. **Safety Official** sees the next session and presses **Start Race**.
 4. The server:
    - sets the active session,
-   - starts the countdown timer (1 minute in dev mode),
+  - starts the countdown timer (1 minute if RACE_DEV_MODE=true),
    - sets the race mode (usually `safe`),
    - broadcasts updates to all interfaces.
 5. **Race Flags** updates to show the current flag.

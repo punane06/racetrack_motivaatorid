@@ -38,6 +38,7 @@ The goal is to deliver an operational racetrack MVP where:
 
 ---
 
+
 # 3. Environment Variables
 
 The server will not start unless all required access keys are provided.
@@ -48,12 +49,17 @@ Required variables:
 - `SAFETY_KEY`
 - `OBSERVER_KEY`
 
+Optional for development:
+
+- `RACE_DEV_MODE` — set to `true` to enable 1-minute race timer for development/testing. If not set or set to any other value, the timer defaults to 10 minutes.
+
 Example for Linux/macOS:
 
 ```bash
 export RECEPTIONIST_KEY=your_key
 export SAFETY_KEY=your_key
 export OBSERVER_KEY=your_key
+export RACE_DEV_MODE=true   # Enable 1-minute dev timer
 ```
 
 Example for Windows PowerShell:
@@ -62,6 +68,7 @@ Example for Windows PowerShell:
 $env:RECEPTIONIST_KEY="your_key"
 $env:SAFETY_KEY="your_key"
 $env:OBSERVER_KEY="your_key"
+$env:RACE_DEV_MODE="true"   # Enable 1-minute dev timer
 ```
 
 If any variable is missing, the server exits with an error and prints usage instructions.
@@ -321,7 +328,7 @@ Check that the server is emitting `sessions:updated` and the client is listening
 - Server validates access keys at startup.
 - Shared contracts must remain synchronized between server and client.
 - Race duration is configurable via environment variables.
-- In development mode, the race timer may run shorter for testing.
+- In development mode, if `RACE_DEV_MODE` is set to `true`, the race timer is 1 minute for testing. Otherwise, it is 10 minutes by default.
 
 ## Running frontend tests
 

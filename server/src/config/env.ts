@@ -27,7 +27,7 @@ export function loadEnv(): ServerEnv {
     safetyKey,
     observerKey,
     raceDurationSeconds:
-      process.env.NODE_ENV === 'dev' ? 60 : 600
+      process.env.RACE_DEV_MODE === 'true' ? 60 : 600
   }
 }
 
