@@ -10,10 +10,11 @@ import { Server } from 'socket.io'
 import { EMPLOYEE_ROUTES, PUBLIC_ROUTES } from '@shared/constants.js'
 import type { ClientToServerEvents, ServerToClientEvents } from '@shared/events.js'
 import { buildAccessKeys, validateAccess } from './socket/auth.js'
-import { registerSessionHandlers } from './socket/handlers/sessionHandlers.js'
+import { registerSessionHandlers, startRaceTimer } from './socket/handlers/sessionHandlers.js'
 import { createInitialState } from './state/store.js'
 import { loadPersistedState, savePersistedState } from './state/persist.js'
-import type { LapData } from '@shared/lap.js'
+
+
 
 // 1. Load and validate env
 let env
@@ -73,10 +74,22 @@ app.post('/state/reset', (req, res) => {
 
 // 6. State loading + autosave
 let raceState = loadPersistedState()
+let shouldRestoreRaceTimer = false;
 if (!raceState) {
   console.log('[STATE] No persisted state found, creating initial state')
   raceState = createInitialState(env.raceDurationSeconds)
   savePersistedState(raceState)
+}
+// Restore timer if race was running
+if (raceState.status === 'running' && raceState.startedAt) {
+  const elapsed = Math.floor((Date.now() - raceState.startedAt) / 1000)
+  raceState.timeRemainingSeconds = Math.max(0, (raceState.raceDurationSeconds ?? 600) - elapsed)
+  if (raceState.timeRemainingSeconds > 0) {
+    shouldRestoreRaceTimer = true;
+  } else {
+    raceState.status = 'finished';
+    raceState.mode = 'finish';
+  }
 }
 setInterval(() => {
   savePersistedState(raceState)
@@ -115,3 +128,8 @@ io.on('connection', (socket) => {
     console.log(`[SOCKET] Client disconnected: ${socket.id}`)
   })
 })
+
+// --- Timer restoration after state load ---
+if (shouldRestoreRaceTimer) {
+  startRaceTimer(io, raceState);
+}
