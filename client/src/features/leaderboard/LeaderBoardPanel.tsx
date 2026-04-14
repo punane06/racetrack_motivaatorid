@@ -151,7 +151,6 @@ const laps = shouldShowLaps ? state.lapData : []
             <thead>
               <tr>
                 <th>#</th>
-                <th>Car</th>
                 <th>Driver</th>
                 <th>Current Lap</th>
                 <th>Fastest Lap</th>
@@ -169,7 +168,6 @@ const laps = shouldShowLaps ? state.lapData : []
                       🚗 Car {row.carNumber}
                     </span>
                   </td>
-                  <td>{row.carNumber}</td>
                   <td>{row.driverName}</td>
                   <td>{row.currentLap}</td>
                   <td>{formatLap(row.fastestLapMs)}</td>
