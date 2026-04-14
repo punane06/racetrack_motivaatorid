@@ -9,7 +9,12 @@ const STATE_FILE = path.join(__dirname, 'state.json')
 export function loadPersistedState() {
     if (!fs.existsSync(STATE_FILE)) return null
     try {
-        return JSON.parse(fs.readFileSync(STATE_FILE, "utf-8"))
+        const loaded = JSON.parse(fs.readFileSync(STATE_FILE, "utf-8"))
+        // Migration: ensure raceDurationSeconds is present
+        if (typeof loaded.raceDurationSeconds !== 'number') {
+            loaded.raceDurationSeconds = 600
+        }
+        return loaded
     } catch {
         return null
     }

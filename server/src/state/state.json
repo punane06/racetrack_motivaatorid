@@ -1,4 +1,5 @@
 {
+  "raceDurationSeconds": 600,
   "status": "idle",
   "mode": "safe",
   "activeSessionId": null,
