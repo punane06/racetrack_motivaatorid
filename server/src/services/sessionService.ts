@@ -46,7 +46,9 @@ export function deleteSession(state: RaceState, sessionId: string): void {
   }
 
   if (state.upcomingSessionId === sessionId) {
-    state.upcomingSessionId = null
+    const nextUpcoming = state.sessions.find((s) => s.status === 'upcoming') ?? null
+    console.log(`[SERVICE] Reassigning upcomingSessionId → ${nextUpcoming?.id ?? 'null'}`)
+    state.upcomingSessionId = nextUpcoming ? nextUpcoming.id : null
   }
 }
 

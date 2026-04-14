@@ -1,11 +1,66 @@
 {
   "status": "idle",
-  "mode": "danger",
+  "mode": "safe",
   "activeSessionId": null,
   "upcomingSessionId": null,
-  "sessions": [],
-  "timeRemainingSeconds": 60,
-  "startedAt": null,
+  "sessions": [
+    {
+      "id": "de7b4a6b-c05b-4e50-96db-976f516038f1",
+      "label": "Session 1",
+      "drivers": [
+        {
+          "id": "695e6611-c233-4733-a804-a795b858bccc",
+          "name": "Helena",
+          "carNumber": 1
+        },
+        {
+          "id": "a0fd7701-6417-4c9a-8f2c-a6513f661508",
+          "name": "Katarina",
+          "carNumber": 2
+        },
+        {
+          "id": "08f4e2c8-5db7-4da1-b7a0-2b85cb231847",
+          "name": "Kristina",
+          "carNumber": 3
+        },
+        {
+          "id": "562b9d6a-e0f1-49d6-88b0-17cf2bd1c953",
+          "name": "Piret",
+          "carNumber": 4
+        }
+      ],
+      "status": "finished"
+    },
+    {
+      "id": "1bea2deb-b549-46fa-b908-ff6f636e963f",
+      "label": "Session 2",
+      "drivers": [
+        {
+          "id": "34b9a573-c0b2-44e8-bc59-597e67ae5e77",
+          "name": "Aco",
+          "carNumber": 1
+        },
+        {
+          "id": "84c12b47-dff7-461a-9d91-6e9657dd3389",
+          "name": "Madis",
+          "carNumber": 2
+        },
+        {
+          "id": "b5630703-ae76-4818-b36b-268b5b89ffe6",
+          "name": "Martin",
+          "carNumber": 3
+        },
+        {
+          "id": "9e88b5f1-9d09-4b6a-b9aa-bea2f69dcb45",
+          "name": "Steven",
+          "carNumber": 4
+        }
+      ],
+      "status": "upcoming"
+    }
+  ],
+  "timeRemainingSeconds": 371,
+  "startedAt": 1776028270818,
   "lapData": [],
   "lastFinishedSessionId": null
 }

@@ -103,7 +103,11 @@ export function LeaderBoardPanel() {
   const displaySession = useMemo(() => (state ? getDisplaySession(state) : null), [state])
   const rows = useMemo(() => {
     if (!state || !displaySession) return []
-    const laps = state.activeSessionId === displaySession.id ? state.lapData : []
+    const shouldShowLaps =
+    state.activeSessionId === displaySession.id ||
+    state.lastFinishedSessionId === displaySession.id
+
+const laps = shouldShowLaps ? state.lapData : []
     return joinRows(displaySession.drivers, laps)
   }, [state, displaySession])
 
