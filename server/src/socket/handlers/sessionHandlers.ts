@@ -192,7 +192,7 @@ export function registerSessionHandlers(
     }
   });
 
-  socket.on('lap:record', (carNumber: number) => {
+  socket.on('lap-recorded', (carNumber: number) => {
     try {
       recordLap(raceState, carNumber);
       emitSessionsAndState();
