@@ -144,11 +144,7 @@ export function removeDriver(state: RaceState, sessionId: string, driverId: stri
   }
 
   session.drivers.splice(index, 1)
-
-  // 🔥 oluline: reindex car numbers
-  session.drivers.forEach((d, i) => {
-    d.carNumber = i + 1
-  })
+  // Do not reindex car numbers! Freed car numbers will be reused by addDriver via findAvailableCar.
 }
 
 // =========================
