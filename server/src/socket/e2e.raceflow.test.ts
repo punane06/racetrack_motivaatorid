@@ -1,4 +1,3 @@
-
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { Server, Socket as IOServerSocket } from 'socket.io';
 import { io as createClient, Socket as IOClientSocket } from 'socket.io-client';
@@ -88,5 +87,23 @@ describe('E2E Race Flow & Auth', () => {
     });
     expect(error?.message).toMatch(/Unauthorized/);
     badClient.close();
+  });
+
+  it('should remove session from upcoming after race:start', async () => {
+    client = createClient(`ws://localhost:${PORT}`, {
+      auth: { role: 'receptionist', key: 'rec-key' },
+      transports: ['websocket']
+    });
+    await new Promise<void>((resolve) => client.on('connect', resolve));
+    let sessions: any[] = [];
+    client.on('sessions:updated', (s: any[]) => { sessions = s; });
+    // Start race
+    client.emit('race:start');
+    await new Promise<void>((r) => setTimeout(r, 100));
+    // There should be no session with status 'upcoming'
+    expect(sessions.some(s => s.status === 'upcoming')).toBe(false);
+    // The session should now be 'active'
+    expect(sessions.some(s => s.status === 'active')).toBe(true);
+    client.close();
   });
 });
