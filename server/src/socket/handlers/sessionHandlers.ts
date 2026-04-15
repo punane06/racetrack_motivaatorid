@@ -38,6 +38,7 @@ function startRace(io: Server<ClientToServerEvents, ServerToClientEvents>, raceS
   if (raceState.status === 'running' || !raceState.upcomingSessionId) return;
 
   raceState.status = 'running';
+  raceState.mode = 'safe'; // Always start in safe mode
 
   const startedSessionId = raceState.upcomingSessionId;
   raceState.activeSessionId = startedSessionId;
@@ -60,6 +61,9 @@ function startRace(io: Server<ClientToServerEvents, ServerToClientEvents>, raceS
   raceState.startedAt = Date.now();
   raceState.timeRemainingSeconds = raceState.raceDurationSeconds ?? 600;
   raceState.lastFinishedSessionId = null;
+
+  // Broadcast state immediately after setting safe mode
+  broadcastState(io, raceState);
 
   startRaceTimer(io, raceState);
 }
@@ -119,15 +123,25 @@ export function registerSessionHandlers(
     io.emit('state:updated', raceState);
   };
 
+
   // Helper: check if socket is authorized for mutating events
   function isAuthorized() {
     return socket.data.role === 'receptionist' || socket.data.role === 'safety';
+  }
+
+  // Helper: block changes after race has started
+  function isRaceModifiable() {
+    return raceState.status === 'idle';
   }
 
   // Mutating events — require authorization
   socket.on('driver:assign_car', (payload: { sessionId: string; driverId: string; carNumber: number }) => {
     if (!isAuthorized()) {
       socket.emit('operation:error', 'Unauthorized: insufficient role');
+      return;
+    }
+    if (!isRaceModifiable()) {
+      socket.emit('operation:error', 'Cannot modify drivers or sessions after race has started.');
       return;
     }
     try {
@@ -144,6 +158,10 @@ export function registerSessionHandlers(
       socket.emit('operation:error', 'Unauthorized: insufficient role');
       return;
     }
+    if (!isRaceModifiable()) {
+      socket.emit('operation:error', 'Cannot modify drivers or sessions after race has started.');
+      return;
+    }
     try {
       addDriver(raceState, payload.sessionId, payload.name);
       emitSessionsAndState();
@@ -156,6 +174,10 @@ export function registerSessionHandlers(
   socket.on('driver:edit', (payload: { sessionId: string; driverId: string; name: string }) => {
     if (!isAuthorized()) {
       socket.emit('operation:error', 'Unauthorized: insufficient role');
+      return;
+    }
+    if (!isRaceModifiable()) {
+      socket.emit('operation:error', 'Cannot modify drivers or sessions after race has started.');
       return;
     }
     try {
@@ -172,6 +194,10 @@ export function registerSessionHandlers(
       socket.emit('operation:error', 'Unauthorized: insufficient role');
       return;
     }
+    if (!isRaceModifiable()) {
+      socket.emit('operation:error', 'Cannot modify drivers or sessions after race has started.');
+      return;
+    }
     try {
       removeDriver(raceState, payload.sessionId, payload.driverId);
       emitSessionsAndState();
@@ -186,6 +212,10 @@ export function registerSessionHandlers(
       socket.emit('operation:error', 'Unauthorized: insufficient role');
       return;
     }
+    if (!isRaceModifiable()) {
+      socket.emit('operation:error', 'Cannot modify drivers or sessions after race has started.');
+      return;
+    }
     try {
       createSession(raceState, label);
       emitSessionsAndState();
@@ -198,6 +228,10 @@ export function registerSessionHandlers(
   socket.on('session:delete', (sessionId: string) => {
     if (!isAuthorized()) {
       socket.emit('operation:error', 'Unauthorized: insufficient role');
+      return;
+    }
+    if (!isRaceModifiable()) {
+      socket.emit('operation:error', 'Cannot modify drivers or sessions after race has started.');
       return;
     }
     try {
