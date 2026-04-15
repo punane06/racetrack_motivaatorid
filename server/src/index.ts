@@ -119,6 +119,9 @@ io.on('connection', (socket) => {
 
   socket.on('auth:check', async ({ role, key }, callback) => {
     const ok = await validateAccess(role, key, accessKeys)
+    if (ok) {
+      socket.data.role = role;
+    }
     callback({ ok, message: ok ? undefined : 'Invalid access key' })
   })
 
