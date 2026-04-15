@@ -147,6 +147,8 @@ export function registerSessionHandlers(
     try {
       assignCarToDriver(raceState, payload.sessionId, payload.driverId, payload.carNumber);
       emitSessionsAndState();
+      // Persist state after mutation
+      require('../../state/persist.js').savePersistedState(raceState);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       socket.emit('operation:error', message);
@@ -165,6 +167,7 @@ export function registerSessionHandlers(
     try {
       addDriver(raceState, payload.sessionId, payload.name);
       emitSessionsAndState();
+      require('../../state/persist.js').savePersistedState(raceState);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       socket.emit('operation:error', message);
@@ -183,6 +186,7 @@ export function registerSessionHandlers(
     try {
       editDriver(raceState, payload.sessionId, payload.driverId, payload.name);
       emitSessionsAndState();
+      require('../../state/persist.js').savePersistedState(raceState);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       socket.emit('operation:error', message);
@@ -201,6 +205,7 @@ export function registerSessionHandlers(
     try {
       removeDriver(raceState, payload.sessionId, payload.driverId);
       emitSessionsAndState();
+      require('../../state/persist.js').savePersistedState(raceState);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       socket.emit('operation:error', message);
@@ -219,6 +224,7 @@ export function registerSessionHandlers(
     try {
       createSession(raceState, label);
       emitSessionsAndState();
+      require('../../state/persist.js').savePersistedState(raceState);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       socket.emit('operation:error', message);
@@ -237,6 +243,7 @@ export function registerSessionHandlers(
     try {
       deleteSession(raceState, sessionId);
       emitSessionsAndState();
+      require('../../state/persist.js').savePersistedState(raceState);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       socket.emit('operation:error', message);
@@ -251,6 +258,7 @@ export function registerSessionHandlers(
     try {
       startRace(io, raceState);
       emitSessionsAndState();
+      require('../../state/persist.js').savePersistedState(raceState);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       socket.emit('operation:error', message);
@@ -270,6 +278,7 @@ export function registerSessionHandlers(
     try {
       setRaceMode(io, raceState, mode);
       emitSessionsAndState();
+      require('../../state/persist.js').savePersistedState(raceState);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       socket.emit('operation:error', message);
@@ -284,6 +293,7 @@ export function registerSessionHandlers(
     try {
       endSession(io, raceState);
       emitSessionsAndState();
+      require('../../state/persist.js').savePersistedState(raceState);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       socket.emit('operation:error', message);
@@ -298,6 +308,7 @@ export function registerSessionHandlers(
     try {
       recordLap(raceState, carNumber);
       emitSessionsAndState();
+      require('../../state/persist.js').savePersistedState(raceState);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       socket.emit('operation:error', message);

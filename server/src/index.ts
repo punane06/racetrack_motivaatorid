@@ -82,8 +82,10 @@ if (!raceState) {
 }
 // Restore timer if race was running
 if (raceState.status === 'running' && raceState.startedAt) {
-  const elapsed = Math.floor((Date.now() - raceState.startedAt) / 1000)
-  raceState.timeRemainingSeconds = Math.max(0, (raceState.raceDurationSeconds ?? 600) - elapsed)
+  // Use millisecond precision for timer restoration
+  const elapsedMs = Date.now() - raceState.startedAt;
+  const durationMs = (raceState.raceDurationSeconds ?? 600) * 1000;
+  raceState.timeRemainingSeconds = Math.max(0, (durationMs - elapsedMs) / 1000);
   if (raceState.timeRemainingSeconds > 0) {
     shouldRestoreRaceTimer = true;
   } else {
