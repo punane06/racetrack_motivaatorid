@@ -4,19 +4,26 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
+
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
       '@shared': fileURLToPath(new URL('../shared', import.meta.url)),
     },
   },
+
   server: {
     host: '127.0.0.1',
     port: 5173,
+
+    // EI LUBA PORTI VAHETADA
+    strictPort: true,
+
     proxy: {
       '/socket.io': {
         target: 'http://localhost:3000',
         ws: true,
+        changeOrigin: true,
       },
     },
   },

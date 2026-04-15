@@ -6,26 +6,21 @@ export function getLeaderboard(state: RaceState) {
     const session = state.sessions.find(s => s.id === state.activeSessionId)
     if (!session) return []
 
-    return session.drivers
-        .map(driver => {
-            const laps = state.lapData.filter(l => l.carNumber === driver.carNumber)
+    const leaderboard = session.drivers.map(driver => {
+        const lap = state.lapData.find(l => l.carNumber === driver.carNumber)
 
-            const lapTimes = laps
-                .map(l => l.fastestLapMs)
-                .filter((time): time is number => time !== null)
-            const fastestLap = lapTimes.length > 0 ? Math.min(...lapTimes) : null
+        return {
+            driverId: driver.id,
+            name: driver.name,
+            carNumber: driver.carNumber,
+            fastestLap: lap?.fastestLapMs ?? null,
+            currentLap: lap?.currentLap ?? 0,
+        }
+    })
 
-            return {
-                driverId: driver.id,
-                name: driver.name,
-                carNumber: driver.carNumber,
-                fastestLap,
-                laps: laps.length
-            }
-        })
-        .sort((a, b) => {
-            if (a.fastestLap === null) return 1
-            if (b.fastestLap === null) return -1
-            return a.fastestLap - b.fastestLap
-        })
+    return leaderboard.sort((a, b) => {
+        if (a.fastestLap === null) return 1
+        if (b.fastestLap === null) return -1
+        return a.fastestLap - b.fastestLap
+    })
 }
