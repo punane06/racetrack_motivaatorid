@@ -35,7 +35,11 @@ const clientDistPath = resolve(__dirname, '../../client/dist')
 
 // 3. Express setup
 const app = express()
-app.use(cors())
+const corsOptions = {
+  origin: env.allowedOrigins.length === 1 && env.allowedOrigins[0] === '*' ? '*' : env.allowedOrigins,
+  credentials: true,
+}
+app.use(cors(corsOptions))
 app.use(express.json())
 app.use(express.static(clientDistPath))
 
@@ -103,7 +107,10 @@ const accessKeys = buildAccessKeys(env.receptionistKey, env.safetyKey, env.obser
 // 8. Socket.IO setup
 const httpServer = createServer(app)
 const io = new Server<ClientToServerEvents, ServerToClientEvents>(httpServer, {
-  cors: { origin: '*' },
+  cors: {
+    origin: env.allowedOrigins.length === 1 && env.allowedOrigins[0] === '*' ? '*' : env.allowedOrigins,
+    credentials: true,
+  },
 })
 
 httpServer.listen(env.port, '0.0.0.0', () => {

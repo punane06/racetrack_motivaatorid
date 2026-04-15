@@ -1,55 +1,65 @@
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState } from 'react'
+import { useToast } from '@/lib/toast'
 import type { RaceState } from '@shared/race'
 import type { RaceSession } from '@shared/session'
 import { appSocket } from '@/lib/socket'
 import { getCarColor } from '@/lib/carColors'
 
-// PR-ist: abifunktsioonid
-function getUpcomingSession(state: RaceState): RaceSession | null {
-  if (!state.upcomingSessionId) return null
-  return state.sessions.find((session) => session.id === state.upcomingSessionId) ?? null
+// Helper: get upcoming session
+function getUpcomingSession(state: RaceState | null): RaceSession | null {
+  return state?.sessions.find((session) => session.id === state.upcomingSessionId) ?? null;
 }
 
-function shouldShowProceedMessage(state: RaceState): boolean {
-  return state.activeSessionId === null && state.mode === 'danger' && state.lastFinishedSessionId !== null
+function shouldShowProceedMessage(state: RaceState | null): boolean {
+  return !!state && state.activeSessionId === null && state.mode === 'danger' && state.lastFinishedSessionId !== null;
 }
 
 export function NextRacePanel() {
-  // Maini loogika: raceState
   const [raceState, setRaceState] = useState<RaceState | null>(null)
-  // PR-ist: täisekraan ja state
-  const [state, setState] = useState<RaceState | null>(null)
   const [isFullscreen, setIsFullscreen] = useState(false)
+  const { showToast } = useToast();
+  const [notifiedNoUpcoming, setNotifiedNoUpcoming] = useState(false);
+  const upcoming = getUpcomingSession(raceState);
+  const showProceed = shouldShowProceedMessage(raceState);
+
+
 
   useEffect(() => {
-    // Maini event
     const onStateUpdated = (state: RaceState) => {
       setRaceState(state)
-      setState(state)
     }
     appSocket.on('state:updated', onStateUpdated)
     appSocket.emit('state:get', (state) => {
       setRaceState(state)
-      setState(state)
     })
-    // PR-ist: täisekraan
     const fetchState = () => {
-      appSocket.emit('state:get', (currentState: RaceState) => setState(currentState))
+      appSocket.emit('state:get', (currentState: RaceState) => setRaceState(currentState))
     }
     const onFullscreenChange = () => setIsFullscreen(Boolean(document.fullscreenElement))
     appSocket.on('connect', fetchState)
     document.addEventListener('fullscreenchange', onFullscreenChange)
     if (appSocket.connected) fetchState()
+    const onDisconnect = () => showToast('Connection lost. Trying to reconnect…', 'error');
+    appSocket.on('disconnect', onDisconnect);
     return () => {
       appSocket.off('state:updated', onStateUpdated)
       appSocket.off('connect', fetchState)
+      appSocket.off('disconnect', onDisconnect)
       document.removeEventListener('fullscreenchange', onFullscreenChange)
     }
-  }, [])
+  }, [showToast])
 
-  // PR-ist: upcoming ja showProceed
-  const upcoming = useMemo(() => (state ? getUpcomingSession(state) : null), [state])
-  const showProceed = useMemo(() => (state ? shouldShowProceedMessage(state) : false), [state])
+  // Toast for no upcoming session (only once per mount)
+  useEffect(() => {
+    if (upcoming == null && !notifiedNoUpcoming) {
+      showToast('No upcoming session configured.', 'info');
+      setNotifiedNoUpcoming(true);
+    } else if (upcoming != null && notifiedNoUpcoming) {
+      setNotifiedNoUpcoming(false);
+    }
+  }, [upcoming, showToast, notifiedNoUpcoming]);
+
+
 
   const toggleFullscreen = async () => {
     if (!document.fullscreenElement) {
@@ -98,8 +108,8 @@ export function NextRacePanel() {
             <tbody>
               {upcoming.drivers
                 .slice()
-                .sort((a, b) => a.carNumber - b.carNumber)
-                .map((driver) => (
+                .sort((a: { carNumber: number }, b: { carNumber: number }) => a.carNumber - b.carNumber)
+                .map((driver: { id: string; carNumber: number; name: string }) => (
                   <tr key={driver.id}>
                     <td>
                       <span

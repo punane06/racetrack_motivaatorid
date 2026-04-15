@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from 'react'
+import { useToast } from '@/lib/toast'
 import { useRaceState } from '@/hooks/useRaceState'
 import { appSocket } from '@/lib/socket'
 import type { RaceSession } from '@shared/session'
@@ -66,6 +67,8 @@ export function LeaderBoardPanel() {
   const state = useRaceState()
   const [sessions, setSessions] = useState<RaceSession[]>([])
   const [isFullscreen, setIsFullscreen] = useState(false)
+  const { showToast } = useToast();
+  const [notifiedNoSessions, setNotifiedNoSessions] = useState(false);
 
   useEffect(() => {
     const onSessionsUpdated = (updatedSessions: RaceSession[]) => setSessions(updatedSessions)
@@ -73,11 +76,25 @@ export function LeaderBoardPanel() {
     appSocket.emit('state:get', (state: RaceState) => setSessions(state.sessions))
     const onFullscreenChange = () => setIsFullscreen(Boolean(document.fullscreenElement))
     document.addEventListener('fullscreenchange', onFullscreenChange)
+    // Connection error toast
+    const onDisconnect = () => showToast('Connection lost. Trying to reconnect…', 'error');
+    appSocket.on('disconnect', onDisconnect);
     return () => {
       appSocket.off('sessions:updated', onSessionsUpdated)
+      appSocket.off('disconnect', onDisconnect)
       document.removeEventListener('fullscreenchange', onFullscreenChange)
     }
-  }, [])
+  }, [showToast])
+
+  // Toast for no sessions (only once per mount)
+  useEffect(() => {
+    if (sessions.length === 0 && !notifiedNoSessions) {
+      showToast('No sessions yet.', 'info');
+      setNotifiedNoSessions(true);
+    } else if (sessions.length > 0 && notifiedNoSessions) {
+      setNotifiedNoSessions(false);
+    }
+  }, [sessions, showToast, notifiedNoSessions]);
 
   // If you add a fullscreen button here in the future, add:
   // <button ... aria-label={isFullscreen ? 'Exit full screen mode' : 'Enter full screen mode'}>...</button>
@@ -87,10 +104,10 @@ export function LeaderBoardPanel() {
   const rows = useMemo(() => {
     if (!state || !displaySession) return []
     const shouldShowLaps =
-    state.activeSessionId === displaySession.id ||
-    state.lastFinishedSessionId === displaySession.id
+      state.activeSessionId === displaySession.id ||
+      state.lastFinishedSessionId === displaySession.id
 
-const laps = shouldShowLaps ? state.lapData : []
+    const laps = shouldShowLaps ? state.lapData : []
     return joinRows(displaySession.drivers, laps)
   }, [state, displaySession])
 

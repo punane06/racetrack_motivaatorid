@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import { useToast } from '@/lib/toast';
 import { appSocket } from '@/lib/socket';
 import type { RaceState } from '@shared/race';
 
@@ -8,6 +9,7 @@ function getActiveSession(raceState: RaceState | null) {
 
 export function LapTrackerPanel() {
   const [raceState, setRaceState] = useState<RaceState | null>(null);
+  const { showToast } = useToast();
 
 
   // Fetch initial state
@@ -49,7 +51,8 @@ export function LapTrackerPanel() {
 
   const handleLap = useCallback((carNumber: number) => {
     appSocket.emit('lap-recorded', carNumber);
-  }, []);
+    showToast(`Lap recorded for car ${carNumber}`, 'success');
+  }, [showToast]);
 
   let content = null;
   if (!raceState) {
