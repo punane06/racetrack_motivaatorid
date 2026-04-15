@@ -2,8 +2,10 @@ import type { Server, Socket } from 'socket.io';
 import type { ClientToServerEvents, ServerToClientEvents } from '@shared/events.js';
 import type { RaceState } from '@shared/race.js';
 import type { RaceSession } from '@shared/session.js';
+
 import { addDriver, createSession, deleteSession, editDriver, removeDriver, assignCarToDriver } from '../../services/sessionService.js';
 import { recordLap } from '../../services/lapService.js';
+import { savePersistedState } from '../../state/persist.js';
 
 let raceInterval: NodeJS.Timeout | null = null;
 
@@ -148,7 +150,7 @@ export function registerSessionHandlers(
       assignCarToDriver(raceState, payload.sessionId, payload.driverId, payload.carNumber);
       emitSessionsAndState();
       // Persist state after mutation
-      require('../../state/persist.js').savePersistedState(raceState);
+      savePersistedState(raceState);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       socket.emit('operation:error', message);
@@ -167,7 +169,7 @@ export function registerSessionHandlers(
     try {
       addDriver(raceState, payload.sessionId, payload.name);
       emitSessionsAndState();
-      require('../../state/persist.js').savePersistedState(raceState);
+      savePersistedState(raceState);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       socket.emit('operation:error', message);
@@ -186,7 +188,7 @@ export function registerSessionHandlers(
     try {
       editDriver(raceState, payload.sessionId, payload.driverId, payload.name);
       emitSessionsAndState();
-      require('../../state/persist.js').savePersistedState(raceState);
+      savePersistedState(raceState);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       socket.emit('operation:error', message);
