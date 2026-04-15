@@ -66,6 +66,10 @@ function startRace(io: Server<ClientToServerEvents, ServerToClientEvents>, raceS
 
 function setRaceMode(io: Server<ClientToServerEvents, ServerToClientEvents>, raceState: RaceState, mode: string) {
   if (!['safe', 'hazard', 'danger', 'finish'].includes(mode)) return;
+  // Enforce finish immutability: once finish, cannot change back
+  if (raceState.mode === 'finish' && mode !== 'finish') {
+    throw new Error('Cannot change mode after finish. Finish is final.');
+  }
   const raceMode = mode as RaceState['mode'];
   raceState.mode = raceMode;
   if (raceMode === 'finish') {
@@ -222,6 +226,11 @@ export function registerSessionHandlers(
   socket.on('race-mode-change', (mode: string) => {
     if (!isAuthorized()) {
       socket.emit('operation:error', 'Unauthorized: insufficient role');
+      return;
+    }
+    // Enforce finish immutability: block mode changes after finish
+    if (raceState.mode === 'finish' && mode !== 'finish') {
+      socket.emit('operation:error', 'Cannot change mode after finish. Finish is final.');
       return;
     }
     try {
