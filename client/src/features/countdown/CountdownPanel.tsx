@@ -48,8 +48,8 @@ export function CountdownPanel() {
   if (!raceState) {
     return (
       <section className="panel countdown-panel">
-        <h2>Race Countdown</h2>
-        <p>Connecting…</p>
+        <h2 id="countdown-heading">Race Countdown</h2>
+        <p role="status" aria-live="polite">Connecting…</p>
       </section>
     )
   }
@@ -57,15 +57,17 @@ export function CountdownPanel() {
   return (
     <section className="panel countdown-panel">
       <header className="countdown-header">
-        <h2>Race Countdown</h2>
-        <button type="button" onClick={toggleFullscreen}>
+        <h2 id="countdown-heading">Race Countdown</h2>
+        <button type="button" onClick={toggleFullscreen} aria-label={isFullscreen ? 'Exit full screen mode' : 'Enter full screen mode'}>
           {isFullscreen ? 'Exit Full Screen' : 'Full Screen'}
         </button>
       </header>
 
-      <div className="countdown-time">{formatTime(raceState.timeRemainingSeconds)}</div>
-      {raceState.activeSessionId == null ? <p>Waiting for race start</p> : null}
-      <p>Race status: {raceState.status ?? 'idle'}</p>
+      <div className="countdown-time" aria-describedby="countdown-heading">
+        <span className="sr-only">Time remaining:</span> {formatTime(raceState.timeRemainingSeconds)}
+      </div>
+      {raceState.activeSessionId == null ? <p role="status" aria-live="polite">Waiting for race start</p> : null}
+      <p>Race status: <span className="sr-only">Current status:</span> {raceState.status ?? 'idle'}</p>
     </section>
   )
 }

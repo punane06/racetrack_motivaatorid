@@ -14,6 +14,7 @@ export interface AccessCheckResult {
 }
 
 export interface ClientToServerEvents {
+    'driver:assign_car': (payload: { sessionId: string; driverId: string; carNumber: number }) => void
   'auth:check': (payload: AccessCheckPayload, callback: (result: AccessCheckResult) => void) => void
   'state:get': (callback: (state: RaceState) => void) => void
   'race:start': () => void
