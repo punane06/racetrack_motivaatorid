@@ -73,8 +73,10 @@ export function FrontDeskPanel() {
     appSocket.emit('driver:remove', { sessionId, driverId })
   }
 
-  // Näita ainult upcoming sessioone
+
   const upcomingSessions = sessions.filter(s => s.status === 'upcoming');
+  const activeSessions = sessions.filter(s => s.status === 'active');
+  const finishedSessions = sessions.filter(s => s.status === 'finished');
 
   return (
     <section className="panel">
@@ -96,13 +98,38 @@ export function FrontDeskPanel() {
 
       {error ? <p className="error-message">{error}</p> : null}
 
-      <SessionList
-        sessions={upcomingSessions}
-        onDelete={deleteSession}
-        onAddDriver={addDriver}
-        onEditDriver={editDriver}
-        onRemoveDriver={removeDriver}
-      />
+      {upcomingSessions.length > 0 && <>
+        <h3>Upcoming Sessions</h3>
+        <SessionList
+          sessions={upcomingSessions}
+          onDelete={deleteSession}
+          onAddDriver={addDriver}
+          onEditDriver={editDriver}
+          onRemoveDriver={removeDriver}
+        />
+      </>}
+
+      {activeSessions.length > 0 && <>
+        <h3>Active Sessions</h3>
+        <SessionList
+          sessions={activeSessions}
+          onDelete={() => {}}
+          onAddDriver={() => {}}
+          onEditDriver={() => {}}
+          onRemoveDriver={() => {}}
+        />
+      </>}
+
+      {finishedSessions.length > 0 && <>
+        <h3>Finished Sessions</h3>
+        <SessionList
+          sessions={finishedSessions}
+          onDelete={() => {}}
+          onAddDriver={() => {}}
+          onEditDriver={() => {}}
+          onRemoveDriver={() => {}}
+        />
+      </>}
     </section>
   );
 }

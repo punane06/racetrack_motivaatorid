@@ -11,6 +11,10 @@ interface DriverCardProps {
   readonly onEdit?: (sessionId: string, driverId: string, name: string) => void
   readonly onRemove?: (sessionId: string, driverId: string) => void
   readonly sessionStatus?: string
+  canMoveUp?: boolean
+  canMoveDown?: boolean
+  onMoveUp?: () => void
+  onMoveDown?: () => void
 }
 
 interface DragDriverPayload {
@@ -19,7 +23,7 @@ interface DragDriverPayload {
   name: string
 }
 
-export function DriverCard({ sessionId, driver, onEdit, onRemove, sessionStatus }: DriverCardProps) {
+export function DriverCard({ sessionId, driver, onEdit, onRemove, sessionStatus, canMoveUp, canMoveDown, onMoveUp, onMoveDown }: Readonly<DriverCardProps>) {
   const [isEditing, setIsEditing] = useState(false)
   const [isDragOverName, setIsDragOverName] = useState(false)
   const isUpcoming = sessionStatus === 'upcoming'
@@ -157,12 +161,30 @@ export function DriverCard({ sessionId, driver, onEdit, onRemove, sessionStatus 
         )}
       </div>
       {carSelectError && <div style={{ color: 'red' }}>{carSelectError}</div>}
-      {isUpcoming && onEdit && onRemove && (
-        <div className="driver-actions">
-          <button onClick={() => setIsEditing(true)}>Edit</button>
-          <button className="danger" onClick={() => onRemove(sessionId, driver.id)}>
-            Remove
-          </button>
+      {isUpcoming && (
+        <div className="driver-actions" style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          {onMoveUp && canMoveUp && (
+            <button
+              type="button"
+              aria-label="Move driver up"
+              onClick={onMoveUp}
+              tabIndex={0}
+            >↑</button>
+          )}
+          {onMoveDown && canMoveDown && (
+            <button
+              type="button"
+              aria-label="Move driver down"
+              onClick={onMoveDown}
+              tabIndex={0}
+            >↓</button>
+          )}
+          {onEdit && <button onClick={() => setIsEditing(true)}>Edit</button>}
+          {onRemove && (
+            <button className="danger" onClick={() => onRemove(sessionId, driver.id)}>
+              Remove
+            </button>
+          )}
         </div>
       )}
     </li>
