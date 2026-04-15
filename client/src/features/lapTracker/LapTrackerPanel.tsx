@@ -51,9 +51,9 @@ export function LapTrackerPanel() {
 
   let content = null;
   if (!raceState) {
-    content = <p>Loading…</p>;
+    content = <p role="status" aria-live="polite">Loading…</p>;
   } else if (status !== 'running' && status !== 'finished') {
-    content = <p className="muted">Waiting for race to start</p>;
+    content = <p className="muted" role="status" aria-live="polite">Waiting for race to start</p>;
   } else if (status === 'running' && activeSession) {
     content = (
       <div
@@ -83,8 +83,9 @@ export function LapTrackerPanel() {
               userSelect: 'none',
             }}
             onClick={() => handleLap(driver.carNumber)}
+            aria-label={`Record lap for car ${driver.carNumber}`}
           >
-            Car {driver.carNumber}
+            <span className="sr-only">Record lap for car </span>{driver.carNumber}
           </button>
         ))}
       </div>
@@ -123,16 +124,16 @@ export function LapTrackerPanel() {
             </button>
           ))}
         </div>
-        <p className="muted" style={{ marginTop: 24 }}>Race finished</p>
+        <p className="muted" style={{ marginTop: 24 }} role="status" aria-live="polite">Race finished</p>
       </>
     );
   } else if (raceState?.status === 'idle' && !raceState?.activeSessionId) {
-    content = <p className="muted">Session ended</p>;
+    content = <p className="muted" role="status" aria-live="polite">Session ended</p>;
   }
 
   return (
     <section className="panel">
-      <h2>Lap-line Tracker</h2>
+      <h2 id="laptracker-heading">Lap-line Tracker</h2>
       {content}
     </section>
   );

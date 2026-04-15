@@ -1,3 +1,35 @@
+// Assign car to driver (Prompt 11)
+export function assignCarToDriver(
+  state: RaceState,
+  sessionId: string,
+  driverId: string,
+  carNumber: number
+): void {
+  if (carNumber < 1 || carNumber > 8) {
+    throw new AppError(ErrorCodes.INVALID_PAYLOAD, 'Car number must be between 1 and 8')
+  }
+  const session = getSession(state, sessionId)
+  if (!session) {
+    throw new AppError(ErrorCodes.SESSION_NOT_FOUND, 'Session not found')
+  }
+  const driver = session.drivers.find((d) => d.id === driverId)
+  if (!driver) {
+    throw new AppError(ErrorCodes.DRIVER_NOT_FOUND, 'Driver not found')
+  }
+  // Check if car is already assigned to another driver
+  const taken = session.drivers.find((d) => d.carNumber === carNumber && d.id !== driverId)
+  if (taken) {
+    throw new AppError(ErrorCodes.INVALID_PAYLOAD, 'Car is already assigned to another driver')
+  }
+  // If car number is the same, do nothing
+  if (driver.carNumber === carNumber) return
+  // If another driver has the desired car, swap
+  const swapDriver = session.drivers.find((d) => d.carNumber === carNumber)
+  if (swapDriver) {
+    swapDriver.carNumber = driver.carNumber
+  }
+  driver.carNumber = carNumber
+}
 import crypto from 'node:crypto'
 
 import type { RaceState } from '@shared/race.js';
@@ -144,11 +176,7 @@ export function removeDriver(state: RaceState, sessionId: string, driverId: stri
   }
 
   session.drivers.splice(index, 1)
-
-  // 🔥 oluline: reindex car numbers
-  session.drivers.forEach((d, i) => {
-    d.carNumber = i + 1
-  })
+  // Do not reindex car numbers! Freed car numbers will be reused by addDriver via findAvailableCar.
 }
 
 // =========================

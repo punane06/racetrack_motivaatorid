@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo } from 'react'
-import { appSocket } from '../../lib/socket'
+import { useRaceState } from '@/hooks/useRaceState'
+import { appSocket } from '@/lib/socket'
 import type { RaceSession } from '@shared/session'
 import type { LapData } from '@shared/lap'
 import type { RaceMode, RaceState } from '@shared/race'
@@ -62,39 +63,18 @@ function joinRows(drivers: any[], lapData: LapData[]): any[] {
 }
 
 export function LeaderBoardPanel() {
-  // Maini loogika: sessions
+  const state = useRaceState()
   const [sessions, setSessions] = useState<RaceSession[]>([])
-  // PR-ist: RaceState ja täisekraan
-  const [state, setState] = useState<RaceState | null>(null)
   const [isFullscreen, setIsFullscreen] = useState(false)
 
   useEffect(() => {
-    // Maini event
     const onSessionsUpdated = (updatedSessions: RaceSession[]) => setSessions(updatedSessions)
     appSocket.on('sessions:updated', onSessionsUpdated)
-    appSocket.emit('state:get', (state) => {
-      setSessions(state.sessions)
-      setState(state)
-    })
-    // PR-ist: RaceState eventid
-    const onStateUpdated = (nextState: RaceState) => setState(nextState)
-    const onRaceTick = (timeRemainingSeconds: number) => {
-      setState((prev) => (prev ? { ...prev, timeRemainingSeconds } : prev))
-    }
-    const fetchState = () => {
-      appSocket.emit('state:get', (currentState: RaceState) => setState(currentState))
-    }
+    appSocket.emit('state:get', (state: RaceState) => setSessions(state.sessions))
     const onFullscreenChange = () => setIsFullscreen(Boolean(document.fullscreenElement))
-    appSocket.on('connect', fetchState)
-    appSocket.on('state:updated', onStateUpdated)
-    appSocket.on('race:tick', onRaceTick)
     document.addEventListener('fullscreenchange', onFullscreenChange)
-    if (appSocket.connected) fetchState()
     return () => {
       appSocket.off('sessions:updated', onSessionsUpdated)
-      appSocket.off('connect', fetchState)
-      appSocket.off('state:updated', onStateUpdated)
-      appSocket.off('race:tick', onRaceTick)
       document.removeEventListener('fullscreenchange', onFullscreenChange)
     }
   }, [])
@@ -134,27 +114,26 @@ const laps = shouldShowLaps ? state.lapData : []
     return (
       <section className="panel leaderboard-panel">
         <header className="leaderboard-header">
-          <h2>Leader Board</h2>
-          <button type="button" onClick={toggleFullscreen}>
+          <h2 id="leaderboard-heading">Leader Board</h2>
+          <button type="button" onClick={toggleFullscreen} aria-label={isFullscreen ? 'Exit full screen mode' : 'Enter full screen mode'}>
             {isFullscreen ? 'Exit Full Screen' : 'Full Screen'}
           </button>
         </header>
-        <div className="leaderboard-meta">
-          <span>Mode: {modeLabel(state.mode)}</span>
-          <span>Time Remaining: {formatTime(state.timeRemainingSeconds)}</span>
-          <span>Session: {displaySession?.label ?? 'No session'}</span>
+        <div className="leaderboard-meta" aria-describedby="leaderboard-heading">
+          <span><span className="sr-only">Race mode:</span> {modeLabel(state.mode)}</span>
+          <span><span className="sr-only">Time remaining:</span> {formatTime(state.timeRemainingSeconds)}</span>
+          <span><span className="sr-only">Session:</span> {displaySession?.label ?? 'No session'}</span>
         </div>
         {displaySession == null ? (
-          <p>No active or finished session yet.</p>
+          <p role="status" aria-live="polite">No active or finished session yet.</p>
         ) : (
-          <table className="leaderboard-table">
+          <table className="leaderboard-table" aria-labelledby="leaderboard-heading">
             <thead>
               <tr>
-                <th>#</th>
-                <th>Car</th>
-                <th>Driver</th>
-                <th>Current Lap</th>
-                <th>Fastest Lap</th>
+                <th scope="col">#</th>
+                <th scope="col">Driver</th>
+                <th scope="col">Current Lap</th>
+                <th scope="col">Fastest Lap</th>
               </tr>
             </thead>
             <tbody>
@@ -165,11 +144,11 @@ const laps = shouldShowLaps ? state.lapData : []
                       className="car-badge"
                       style={{ backgroundColor: getCarColor(row.carNumber) }}
                       title={`Car ${row.carNumber}`}
+                      aria-label={`Car ${row.carNumber}`}
                     >
-                      🚗 Car {row.carNumber}
+                      <span aria-hidden="true">🚗</span> <span className="sr-only">Car </span>{row.carNumber}
                     </span>
                   </td>
-                  <td>{row.carNumber}</td>
                   <td>{row.driverName}</td>
                   <td>{row.currentLap}</td>
                   <td>{formatLap(row.fastestLapMs)}</td>
