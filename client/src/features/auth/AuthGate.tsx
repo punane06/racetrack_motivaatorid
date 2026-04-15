@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useToast } from '@/lib/toast'
 import type { PropsWithChildren } from 'react'
 import { useLocation } from 'react-router-dom'
 import { appSocket } from '@/lib/socket'
@@ -20,7 +21,7 @@ export function AuthGate({ children }: Readonly<PropsWithChildren>) {
   const label = useMemo(() => labelByPath[location.pathname] ?? 'Access key', [location.pathname])
   const [value, setValue] = useState('')
   const [unlocked, setUnlocked] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const { showToast } = useToast()
   const role = roleByPath[location.pathname]
 
   if (unlocked) {
@@ -29,9 +30,8 @@ export function AuthGate({ children }: Readonly<PropsWithChildren>) {
 
   const onSubmit = (event: React.SyntheticEvent<HTMLFormElement>) => {
     event.preventDefault()
-    setError(null)
     if (!value.trim() || !role) {
-      setError('Please enter the access key.')
+      showToast('Please enter the access key.', 'error')
       return
     }
     appSocket.emit(
@@ -41,7 +41,7 @@ export function AuthGate({ children }: Readonly<PropsWithChildren>) {
         if (result.ok) {
           setUnlocked(true)
         } else {
-          setError('Incorrect access key')
+          showToast('Incorrect access key', 'error')
           setValue('')
         }
       }
@@ -65,7 +65,7 @@ export function AuthGate({ children }: Readonly<PropsWithChildren>) {
           />
         </label>
         <button type="submit">Unlock Interface</button>
-        {error && <div style={{ color: 'red', marginTop: 8 }} role="alert">{error}</div>}
+
       </form>
     </div>
   )

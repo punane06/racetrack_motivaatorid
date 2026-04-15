@@ -1,11 +1,13 @@
 import { useState } from 'react'
+import { useConfirm } from '@/lib/confirm'
 import type { DragEvent } from 'react'
 import type { Driver } from '@shared/session'
-import { appSocket } from '@/lib/socket'
+
 import { DriverEditor } from './DriverEditor'
+import { appSocket } from '@/lib/socket'
 import { getCarColor } from '@/lib/carColors'
 
-interface DriverCardProps {
+export interface DriverCardProps {
   readonly sessionId: string
   readonly driver: Driver
   readonly onEdit?: (sessionId: string, driverId: string, name: string) => void
@@ -27,14 +29,9 @@ export function DriverCard({ sessionId, driver, onEdit, onRemove, sessionStatus,
   const [isEditing, setIsEditing] = useState(false)
   const [isDragOverName, setIsDragOverName] = useState(false)
   const isUpcoming = sessionStatus === 'upcoming'
-
-  // Car selection logic (Prompt 11)
-  // Only allow car selection for upcoming sessions
-  // Find available car numbers (1-8 not assigned to other drivers, plus current)
+  const confirm = useConfirm()
   const [carSelectError, setCarSelectError] = useState<string | null>(null)
   const carNumbers = Array.from({ length: 8 }, (_, i) => i + 1)
-
-  // (removed unused takenCars)
 
   const onNameDragStart = (event: DragEvent<HTMLButtonElement>) => {
     if (!isUpcoming || !onEdit) return
@@ -181,7 +178,14 @@ export function DriverCard({ sessionId, driver, onEdit, onRemove, sessionStatus,
           )}
           {onEdit && <button onClick={() => setIsEditing(true)}>Edit</button>}
           {onRemove && (
-            <button className="danger" onClick={() => onRemove(sessionId, driver.id)}>
+            <button
+              className="danger"
+              onClick={async () => {
+                if (await confirm(`Remove driver "${driver.name}"?`)) {
+                  onRemove(sessionId, driver.id)
+                }
+              }}
+            >
               Remove
             </button>
           )}
