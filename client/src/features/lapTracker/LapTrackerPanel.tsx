@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import { useToast } from '@/lib/toast';
 import { appSocket } from '@/lib/socket';
 import type { RaceState } from '@shared/race';
 
@@ -8,6 +9,7 @@ function getActiveSession(raceState: RaceState | null) {
 
 export function LapTrackerPanel() {
   const [raceState, setRaceState] = useState<RaceState | null>(null);
+  const { showToast } = useToast();
 
 
   // Fetch initial state
@@ -20,11 +22,13 @@ export function LapTrackerPanel() {
   // Listen for updates
   useEffect(() => {
     const onState = (state: RaceState) => setRaceState(state);
+    // Use a stable handler for race:tick
+    const onRaceTick = () => {};
     appSocket.on('state:updated', onState);
-    appSocket.on('race:tick', () => {}); // just to trigger rerender if needed in future
+    appSocket.on('race:tick', onRaceTick); // just to trigger rerender if needed in future
     return () => {
       appSocket.off('state:updated', onState);
-      appSocket.off('race:tick', () => {});
+      appSocket.off('race:tick', onRaceTick);
     };
   }, []);
 
@@ -47,7 +51,8 @@ export function LapTrackerPanel() {
 
   const handleLap = useCallback((carNumber: number) => {
     appSocket.emit('lap-recorded', carNumber);
-  }, []);
+    showToast(`Lap recorded for car ${carNumber}`, 'success');
+  }, [showToast]);
 
   let content = null;
   if (!raceState) {
@@ -138,3 +143,6 @@ export function LapTrackerPanel() {
     </section>
   );
 }
+
+          // If you add a fullscreen button here in the future, add:
+          // <button ... aria-label={isFullscreen ? 'Exit full screen mode' : 'Enter full screen mode'}>...</button>

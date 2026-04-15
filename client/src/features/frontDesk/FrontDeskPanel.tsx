@@ -1,4 +1,6 @@
+
 import { useEffect, useState } from 'react'
+import { useToast } from '@/lib/toast'
 
 
 import type { RaceState } from '@shared/race'
@@ -9,7 +11,7 @@ import { SessionList } from './SessionList'
 export function FrontDeskPanel() {
   const [sessions, setSessions] = useState<RaceSession[]>([])
   const [label, setLabel] = useState('')
-  const [error, setError] = useState<string | null>(null)
+  const { showToast } = useToast()
 
   useEffect(() => {
     const onSessionsUpdated = (nextSessions: RaceSession[]) => {
@@ -17,7 +19,7 @@ export function FrontDeskPanel() {
     }
 
     const onOperationError = (message: string) => {
-      setError(message)
+      showToast(message, 'error')
     }
 
     const fetchState = () => {
@@ -48,28 +50,23 @@ export function FrontDeskPanel() {
       return
     }
 
-    setError(null)
     appSocket.emit('session:create', normalized)
     setLabel('')
   }
 
   const deleteSession = (sessionId: string) => {
-    setError(null)
     appSocket.emit('session:delete', sessionId)
   }
 
   const addDriver = (sessionId: string, name: string) => {
-    setError(null)
     appSocket.emit('driver:add', { sessionId, name })
   }
 
   const editDriver = (sessionId: string, driverId: string, name: string) => {
-    setError(null)
     appSocket.emit('driver:edit', { sessionId, driverId, name })
   }
 
   const removeDriver = (sessionId: string, driverId: string) => {
-    setError(null)
     appSocket.emit('driver:remove', { sessionId, driverId })
   }
 
@@ -96,7 +93,7 @@ export function FrontDeskPanel() {
         <button type="submit">Add Session</button>
       </form>
 
-      {error ? <p className="error-message">{error}</p> : null}
+
 
       {upcomingSessions.length > 0 && <>
         <h3>Upcoming Sessions</h3>

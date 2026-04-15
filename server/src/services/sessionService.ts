@@ -12,6 +12,9 @@ export function assignCarToDriver(
   if (!session) {
     throw new AppError(ErrorCodes.SESSION_NOT_FOUND, 'Session not found')
   }
+  if (session.status !== 'upcoming') {
+    throw new AppError(ErrorCodes.INVALID_PAYLOAD, 'Cannot edit drivers or assign cars unless session is upcoming')
+  }
   const driver = session.drivers.find((d) => d.id === driverId)
   if (!driver) {
     throw new AppError(ErrorCodes.DRIVER_NOT_FOUND, 'Driver not found')
@@ -43,7 +46,7 @@ import { ErrorCodes } from '../errors/errorCodes.js';
 export function createSession(state: RaceState, label?: string): RaceSession {
   const finalLabel = label?.trim() || `Session ${state.sessions.length + 1}`
 
-  console.log(`[SERVICE] Creating session "${finalLabel}"`)
+  // [SERVICE] Creating session "${finalLabel}" (dev only)
 
   const session: RaceSession = {
     id: crypto.randomUUID(),
@@ -56,7 +59,7 @@ export function createSession(state: RaceState, label?: string): RaceSession {
 
   // määrame upcoming ainult siis kui puudub
   if (!state.upcomingSessionId) {
-    console.log(`[SERVICE] Setting upcomingSessionId → ${session.id}`)
+    // [SERVICE] Setting upcomingSessionId → ${session.id} (dev only)
     state.upcomingSessionId = session.id
   }
 
@@ -64,13 +67,17 @@ export function createSession(state: RaceState, label?: string): RaceSession {
 }
 
 export function deleteSession(state: RaceState, sessionId: string): void {
-  console.log(`[SERVICE] Deleting session ${sessionId}`)
+  // [SERVICE] Deleting session ${sessionId} (dev only)
 
   const index = state.sessions.findIndex((s) => s.id === sessionId)
   if (index === -1) {
     throw new AppError(ErrorCodes.SESSION_NOT_FOUND, 'Session not found')
   }
 
+  const session = state.sessions[index]
+  if (session.status !== 'upcoming') {
+    throw new AppError(ErrorCodes.INVALID_PAYLOAD, 'Cannot delete session unless it is upcoming')
+  }
   state.sessions.splice(index, 1)
 
   if (state.activeSessionId === sessionId) {
@@ -79,7 +86,7 @@ export function deleteSession(state: RaceState, sessionId: string): void {
 
   if (state.upcomingSessionId === sessionId) {
     const nextUpcoming = state.sessions.find((s) => s.status === 'upcoming') ?? null
-    console.log(`[SERVICE] Reassigning upcomingSessionId → ${nextUpcoming?.id ?? 'null'}`)
+    // [SERVICE] Reassigning upcomingSessionId → ${nextUpcoming?.id ?? 'null'} (dev only)
     state.upcomingSessionId = nextUpcoming ? nextUpcoming.id : null
   }
 }
@@ -88,13 +95,16 @@ export function deleteSession(state: RaceState, sessionId: string): void {
 // DRIVER
 // =========================
 export function addDriver(state: RaceState, sessionId: string, name: string): Driver {
-  console.log(`[SERVICE] Adding driver "${name}" to session ${sessionId}`)
+  // [SERVICE] Adding driver "${name}" to session ${sessionId} (dev only)
 
   const session = getSession(state, sessionId)
   if (!session) {
     throw new AppError(ErrorCodes.SESSION_NOT_FOUND, 'Session not found')
   }
 
+  if (session.status !== 'upcoming') {
+    throw new AppError(ErrorCodes.INVALID_PAYLOAD, 'Cannot add driver unless session is upcoming')
+  }
   if (session.drivers.length >= 8) {
     throw new AppError(ErrorCodes.INVALID_PAYLOAD, 'Maximum 8 drivers per session is reached')
   }
@@ -124,7 +134,7 @@ export function addDriver(state: RaceState, sessionId: string, name: string): Dr
     carNumber,
   }
 
-  console.log(`[SERVICE] Assigned carNumber=${carNumber} to "${normalizedName}"`)
+  // [SERVICE] Assigned carNumber=${carNumber} to "${normalizedName}" (dev only)
 
   session.drivers.push(driver)
 
@@ -147,6 +157,9 @@ export function editDriver(
     throw new AppError(ErrorCodes.INVALID_PAYLOAD, 'Driver name is required')
   }
 
+  if (session.status !== 'upcoming') {
+    throw new AppError(ErrorCodes.INVALID_PAYLOAD, 'Cannot edit driver unless session is upcoming')
+  }
   const driver = session.drivers.find((d) => d.id === driverId)
   if (!driver) {
     throw new AppError(ErrorCodes.DRIVER_NOT_FOUND, 'Driver not found')
@@ -170,6 +183,9 @@ export function removeDriver(state: RaceState, sessionId: string, driverId: stri
     throw new AppError(ErrorCodes.SESSION_NOT_FOUND, 'Session not found')
   }
 
+  if (session.status !== 'upcoming') {
+    throw new AppError(ErrorCodes.INVALID_PAYLOAD, 'Cannot remove driver unless session is upcoming')
+  }
   const index = session.drivers.findIndex((d) => d.id === driverId)
   if (index === -1) {
     throw new AppError(ErrorCodes.DRIVER_NOT_FOUND, 'Driver not found')
