@@ -12,6 +12,9 @@ export function assignCarToDriver(
   if (!session) {
     throw new AppError(ErrorCodes.SESSION_NOT_FOUND, 'Session not found')
   }
+  if (session.status !== 'upcoming') {
+    throw new AppError(ErrorCodes.INVALID_PAYLOAD, 'Cannot edit drivers or assign cars unless session is upcoming')
+  }
   const driver = session.drivers.find((d) => d.id === driverId)
   if (!driver) {
     throw new AppError(ErrorCodes.DRIVER_NOT_FOUND, 'Driver not found')
@@ -71,6 +74,10 @@ export function deleteSession(state: RaceState, sessionId: string): void {
     throw new AppError(ErrorCodes.SESSION_NOT_FOUND, 'Session not found')
   }
 
+  const session = state.sessions[index]
+  if (session.status !== 'upcoming') {
+    throw new AppError(ErrorCodes.INVALID_PAYLOAD, 'Cannot delete session unless it is upcoming')
+  }
   state.sessions.splice(index, 1)
 
   if (state.activeSessionId === sessionId) {
@@ -95,6 +102,9 @@ export function addDriver(state: RaceState, sessionId: string, name: string): Dr
     throw new AppError(ErrorCodes.SESSION_NOT_FOUND, 'Session not found')
   }
 
+  if (session.status !== 'upcoming') {
+    throw new AppError(ErrorCodes.INVALID_PAYLOAD, 'Cannot add driver unless session is upcoming')
+  }
   if (session.drivers.length >= 8) {
     throw new AppError(ErrorCodes.INVALID_PAYLOAD, 'Maximum 8 drivers per session is reached')
   }
@@ -147,6 +157,9 @@ export function editDriver(
     throw new AppError(ErrorCodes.INVALID_PAYLOAD, 'Driver name is required')
   }
 
+  if (session.status !== 'upcoming') {
+    throw new AppError(ErrorCodes.INVALID_PAYLOAD, 'Cannot edit driver unless session is upcoming')
+  }
   const driver = session.drivers.find((d) => d.id === driverId)
   if (!driver) {
     throw new AppError(ErrorCodes.DRIVER_NOT_FOUND, 'Driver not found')
@@ -170,6 +183,9 @@ export function removeDriver(state: RaceState, sessionId: string, driverId: stri
     throw new AppError(ErrorCodes.SESSION_NOT_FOUND, 'Session not found')
   }
 
+  if (session.status !== 'upcoming') {
+    throw new AppError(ErrorCodes.INVALID_PAYLOAD, 'Cannot remove driver unless session is upcoming')
+  }
   const index = session.drivers.findIndex((d) => d.id === driverId)
   if (index === -1) {
     throw new AppError(ErrorCodes.DRIVER_NOT_FOUND, 'Driver not found')
