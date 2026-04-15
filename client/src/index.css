@@ -1,3 +1,9 @@
+/* Accessibility: global focus-visible outline */
+:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+  z-index: 2;
+}
 /* Visually hidden utility for accessibility */
 .sr-only {
   position: absolute;
@@ -244,8 +250,8 @@ button.danger {
   margin: 0.75rem 0;
   padding: 0.9rem 1rem;
   border-radius: 0.5rem;
-  background: #ffe9a8;
-  color: #2d2d2d;
+  background: #ffd400;
+  color: #222;
   font-weight: 800;
   font-size: clamp(1rem, 2vw, 1.4rem);
   text-transform: uppercase;
@@ -276,6 +282,12 @@ button.danger {
   text-transform: uppercase;
   color: #111;
   text-shadow: 0 1px 2px rgb(255 255 255 / 35%);
+}
+
+.flag-hazard .race-flag-label,
+.race-flags-panel.flag-hazard .race-flag-label {
+  color: #222;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 10%);
 }
 
 .flag-safe {

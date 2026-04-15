@@ -1,15 +1,57 @@
+
 # Racetrack Info Screens
 
-This project is a team assignment built during the //kood course.  
-Team name: **Motivaatorid**.
+Team: **Motivaatorid**  
+//kood 2025-2026 team project
 
-The goal is to deliver an operational racetrack MVP where:
+## Project Goal
+Deliver a robust racetrack MVP:
+- Employees: dedicated interfaces for race operations
+- Audience: live race info screens
+- Server: single source of truth, state persists across restarts
+- Shared: TypeScript contracts for all events/state
 
-- employees have dedicated interfaces for race operations,
-- the audience has dedicated display screens for live race information,
-- the server is the single source of truth for race state,
-- client and server share TypeScript contracts for consistency,
-- race state persists across server restarts.
+---
+
+## Workspace Structure
+
+```
+Racetrack_Motivaatorid/
+├── client/           # React app (Vite, TypeScript)
+│   ├── src/
+│   │   ├── features/ # UI panels by domain (frontDesk, raceControl, ...)
+│   │   ├── routes/   # Route entrypoints (one per main view)
+│   │   ├── layouts/  # Layout wrappers (EmployeeLayout, PublicLayout)
+│   │   ├── lib/      # Shared client utilities (socket, carColors)
+│   │   └── hooks/    # React hooks (useRaceState)
+│   └── ...
+├── server/           # Node.js backend (Express, Socket.IO, TypeScript)
+│   ├── src/
+│   │   ├── services/ # Business logic (sessionService, lapService, ...)
+│   │   ├── socket/   # Socket.IO handlers, auth
+│   │   ├── state/    # Persistence, state store
+│   │   └── config/   # Env config
+│   └── ...
+├── shared/           # Shared types and event contracts
+├── screenshots/      # Screenshots/GIFs for README (TODO: add images)
+├── .env.example      # Example environment variables
+├── README.md         # This file
+└── USER_GUIDE.md     # Detailed user guide
+```
+
+---
+
+## Routes & Views
+
+| URL                  | React Component         | Description                       |
+|----------------------|------------------------|-----------------------------------|
+| /front-desk          | FrontDeskPanel         | Receptionist: manage sessions     |
+| /race-control        | RaceControlPanel       | Safety: control race/flags        |
+| /lap-line-tracker    | LapTrackerPanel        | Observer: record laps             |
+| /leader-board        | LeaderBoardPanel       | Public: live leaderboard          |
+| /next-race           | NextRacePanel          | Public: next race info            |
+| /race-countdown      | CountdownPanel         | Public: countdown timer           |
+| /race-flags          | RaceFlagsPanel         | Public: current flag color        |
 
 ---
 
@@ -43,22 +85,29 @@ The goal is to deliver an operational racetrack MVP where:
 
 The server will not start unless all required access keys are provided.
 
-Required variables:
-
-- `RECEPTIONIST_KEY`
-- `SAFETY_KEY`
-- `OBSERVER_KEY`
-
-Optional for development:
-
-- `RACE_DEV_MODE` — set to `true` to enable 1-minute race timer for development/testing. If not set or set to any other value, the timer defaults to 10 minutes.
+See [.env.example](./.env.example) for all required and optional variables. Copy it to `.env` and fill in your own values.
 
 Example for Linux/macOS:
-
 ```bash
+cp .env.example .env
 export RECEPTIONIST_KEY=your_key
 export SAFETY_KEY=your_key
 export OBSERVER_KEY=your_key
+```
+Example for Windows (cmd):
+```cmd
+copy .env.example .env
+set RECEPTIONIST_KEY=your_key
+set SAFETY_KEY=your_key
+set OBSERVER_KEY=your_key
+```
+Example for Windows (PowerShell):
+```powershell
+Copy-Item .env.example .env
+$env:RECEPTIONIST_KEY="your_key"
+$env:SAFETY_KEY="your_key"
+$env:OBSERVER_KEY="your_key"
+```
 export RACE_DEV_MODE=true   # Enable 1-minute dev timer
 ```
 
@@ -117,35 +166,22 @@ The client is served from the built `dist` folder.
 
 ---
 
-# 7. Routes
-
-### Employee interfaces
-
-- `/front-desk`
-- `/race-control`
-- `/lap-line-tracker`
-
-### Public screens
-
-- `/leader-board`
-- `/next-race`
-- `/race-countdown`
-- `/race-flags`
 
 ---
 
-# 8. Workspace Structure
 
-- **server** — backend API, WebSocket logic, state management  
-- **client** — user interfaces and route structure  
-- **shared** — TypeScript contracts shared between server and client
+
+
+# 8. Testing
+
+## Automated tests
+- Server: Vitest covers session logic, persistence, and business rules.
+- Client: Minimal automated tests (see client/setupTests.ts).
+
+## Manual testing
+- **TODO:** Manual testimine tuleb teha pärast viimast muudatust! Kõik UI vood, rollipõhine ligipääs, edge case'id (reconnect, state resume, finish mode) tuleb käsitsi üle kontrollida.
 
 ---
-
-# 9. Race State Structure
-
-The server maintains a single in-memory race state object, which is also persisted to disk.  
-This object is the single source of truth for all race-related data.
 
 ## RaceState fields
 

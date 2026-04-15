@@ -79,6 +79,9 @@ export function LeaderBoardPanel() {
     }
   }, [])
 
+  // If you add a fullscreen button here in the future, add:
+  // <button ... aria-label={isFullscreen ? 'Exit full screen mode' : 'Enter full screen mode'}>...</button>
+
   // PR-ist: displaySession ja rows
   const displaySession = useMemo(() => (state ? getDisplaySession(state) : null), [state])
   const rows = useMemo(() => {

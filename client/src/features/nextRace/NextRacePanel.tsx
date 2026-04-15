@@ -74,7 +74,11 @@ export function NextRacePanel() {
     <section className="panel next-race-panel">
       <header className="next-race-header">
         <h2>Next Race</h2>
-        <button type="button" onClick={toggleFullscreen}>
+        <button
+          type="button"
+          onClick={toggleFullscreen}
+          aria-label={isFullscreen ? 'Exit full screen mode' : 'Enter full screen mode'}
+        >
           {isFullscreen ? 'Exit Full Screen' : 'Full Screen'}
         </button>
       </header>
