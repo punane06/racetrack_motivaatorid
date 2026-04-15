@@ -25,3 +25,6 @@ client/.vite/
 ._*
 .Spotlight-V100
 .Trashes
+
+# runtime state (local only)
+server/src/state/state.json
