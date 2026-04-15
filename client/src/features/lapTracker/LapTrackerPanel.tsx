@@ -20,11 +20,13 @@ export function LapTrackerPanel() {
   // Listen for updates
   useEffect(() => {
     const onState = (state: RaceState) => setRaceState(state);
+    // Use a stable handler for race:tick
+    const onRaceTick = () => {};
     appSocket.on('state:updated', onState);
-    appSocket.on('race:tick', () => {}); // just to trigger rerender if needed in future
+    appSocket.on('race:tick', onRaceTick); // just to trigger rerender if needed in future
     return () => {
       appSocket.off('state:updated', onState);
-      appSocket.off('race:tick', () => {});
+      appSocket.off('race:tick', onRaceTick);
     };
   }, []);
 
