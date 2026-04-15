@@ -20,7 +20,7 @@ import { loadPersistedState, savePersistedState } from './state/persist.js'
 let env
 try {
   env = loadEnv()
-  console.log('[ENV] All required environment variables are present')
+  // [ENV] All required environment variables are present
 } catch (error) {
   const message = error instanceof Error ? error.message : String(error)
   console.error('[ENV] Error loading environment variables:', message)
@@ -35,7 +35,11 @@ const clientDistPath = resolve(__dirname, '../../client/dist')
 
 // 3. Express setup
 const app = express()
-app.use(cors())
+const corsOptions = {
+  origin: env.allowedOrigins.length === 1 && env.allowedOrigins[0] === '*' ? '*' : env.allowedOrigins,
+  credentials: true,
+}
+app.use(cors(corsOptions))
 app.use(express.json())
 app.use(express.static(clientDistPath))
 
@@ -49,7 +53,7 @@ for (const route of firstLevelRoutes) {
 
 // 4. Health check endpoint
 app.get('/health', (req, res) => {
-  console.log('[HEALTH] Health check requested')
+  // [HEALTH] Health check requested
   res.json({
     status: 'ok',
     timestamp: new Date().toISOString(),
@@ -63,10 +67,10 @@ app.get('/health', (req, res) => {
 app.post('/state/reset', (req, res) => {
   const key = req.headers['x-access-key']
   if (key !== env.receptionistKey && key !== env.safetyKey) {
-    console.warn('[STATE] Unauthorized reset attempt')
+    // [STATE] Unauthorized reset attempt
     return res.status(403).json({ ok: false, message: 'Forbidden' })
   }
-  console.log('[STATE] Reset requested — creating fresh state')
+  // [STATE] Reset requested — creating fresh state
   raceState = createInitialState(env.raceDurationSeconds)
   savePersistedState(raceState)
   res.json({ ok: true, message: 'State has been reset' })
@@ -76,14 +80,16 @@ app.post('/state/reset', (req, res) => {
 let raceState = loadPersistedState()
 let shouldRestoreRaceTimer = false;
 if (!raceState) {
-  console.log('[STATE] No persisted state found, creating initial state')
+  // [STATE] No persisted state found, creating initial state
   raceState = createInitialState(env.raceDurationSeconds)
   savePersistedState(raceState)
 }
 // Restore timer if race was running
 if (raceState.status === 'running' && raceState.startedAt) {
-  const elapsed = Math.floor((Date.now() - raceState.startedAt) / 1000)
-  raceState.timeRemainingSeconds = Math.max(0, (raceState.raceDurationSeconds ?? 600) - elapsed)
+  // Use millisecond precision for timer restoration
+  const elapsedMs = Date.now() - raceState.startedAt;
+  const durationMs = (raceState.raceDurationSeconds ?? 600) * 1000;
+  raceState.timeRemainingSeconds = Math.max(0, (durationMs - elapsedMs) / 1000);
   if (raceState.timeRemainingSeconds > 0) {
     shouldRestoreRaceTimer = true;
   } else {
@@ -101,17 +107,20 @@ const accessKeys = buildAccessKeys(env.receptionistKey, env.safetyKey, env.obser
 // 8. Socket.IO setup
 const httpServer = createServer(app)
 const io = new Server<ClientToServerEvents, ServerToClientEvents>(httpServer, {
-  cors: { origin: '*' },
+  cors: {
+    origin: env.allowedOrigins.length === 1 && env.allowedOrigins[0] === '*' ? '*' : env.allowedOrigins,
+    credentials: true,
+  },
 })
 
 httpServer.listen(env.port, '0.0.0.0', () => {
   console.log(`Server running on http://0.0.0.0:${env.port}`)
-  console.log(`Race duration: ${env.raceDurationSeconds} seconds`)
+  // Race duration: ${env.raceDurationSeconds} seconds
 })
 
 // 9. Socket connection handlers
 io.on('connection', (socket) => {
-  console.log(`[SOCKET] Client connected: ${socket.id}`)
+  // [SOCKET] Client connected: ${socket.id}
 
   socket.on('state:get', (callback) => {
     callback(raceState)
@@ -119,13 +128,16 @@ io.on('connection', (socket) => {
 
   socket.on('auth:check', async ({ role, key }, callback) => {
     const ok = await validateAccess(role, key, accessKeys)
+    if (ok) {
+      socket.data.role = role;
+    }
     callback({ ok, message: ok ? undefined : 'Invalid access key' })
   })
 
   registerSessionHandlers(io, socket, raceState)
 
   socket.on('disconnect', () => {
-    console.log(`[SOCKET] Client disconnected: ${socket.id}`)
+    // [SOCKET] Client disconnected: ${socket.id}
   })
 })
 

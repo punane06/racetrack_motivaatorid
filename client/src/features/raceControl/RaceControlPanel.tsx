@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { useToast } from '@/lib/toast';
+import { useConfirm } from '@/lib/confirm';
 import { appSocket } from '../../lib/socket';
 import type { RaceState, RaceMode } from '@shared/race';
 
@@ -11,6 +13,8 @@ const MODE_COLORS: Record<RaceMode, string> = {
 
 export function RaceControlPanel() {
   const [raceState, setRaceState] = useState<RaceState | null>(null);
+  const { showToast } = useToast();
+  const confirm = useConfirm();
 
   useEffect(() => {
     const onStateUpdated = (state: RaceState) => setRaceState(state);
@@ -23,9 +27,22 @@ export function RaceControlPanel() {
     };
   }, []);
 
-  const startRace = () => appSocket.emit('race:start');
-  const endSession = () => appSocket.emit('race:end_session');
-  const changeMode = (mode: RaceMode) => appSocket.emit('race-mode-change', mode);
+  const startRace = () => {
+    appSocket.emit('race:start');
+    showToast('Race started', 'success');
+  };
+
+  const endSession = async () => {
+    if (await confirm('End this session?')) {
+      appSocket.emit('race:end_session');
+      showToast('Session ended', 'success');
+    }
+  };
+
+  const changeMode = (mode: RaceMode) => {
+    appSocket.emit('race-mode-change', mode);
+    showToast(`Race mode set to ${mode.toUpperCase()}`, 'info');
+  };
 
   // Helper: get upcoming session
   const upcomingSession = raceState?.upcomingSessionId
