@@ -46,7 +46,7 @@ import { ErrorCodes } from '../errors/errorCodes.js';
 export function createSession(state: RaceState, label?: string): RaceSession {
   const finalLabel = label?.trim() || `Session ${state.sessions.length + 1}`
 
-  console.log(`[SERVICE] Creating session "${finalLabel}"`)
+  // [SERVICE] Creating session "${finalLabel}" (dev only)
 
   const session: RaceSession = {
     id: crypto.randomUUID(),
@@ -59,7 +59,7 @@ export function createSession(state: RaceState, label?: string): RaceSession {
 
   // määrame upcoming ainult siis kui puudub
   if (!state.upcomingSessionId) {
-    console.log(`[SERVICE] Setting upcomingSessionId → ${session.id}`)
+    // [SERVICE] Setting upcomingSessionId → ${session.id} (dev only)
     state.upcomingSessionId = session.id
   }
 
@@ -67,7 +67,7 @@ export function createSession(state: RaceState, label?: string): RaceSession {
 }
 
 export function deleteSession(state: RaceState, sessionId: string): void {
-  console.log(`[SERVICE] Deleting session ${sessionId}`)
+  // [SERVICE] Deleting session ${sessionId} (dev only)
 
   const index = state.sessions.findIndex((s) => s.id === sessionId)
   if (index === -1) {
@@ -86,7 +86,7 @@ export function deleteSession(state: RaceState, sessionId: string): void {
 
   if (state.upcomingSessionId === sessionId) {
     const nextUpcoming = state.sessions.find((s) => s.status === 'upcoming') ?? null
-    console.log(`[SERVICE] Reassigning upcomingSessionId → ${nextUpcoming?.id ?? 'null'}`)
+    // [SERVICE] Reassigning upcomingSessionId → ${nextUpcoming?.id ?? 'null'} (dev only)
     state.upcomingSessionId = nextUpcoming ? nextUpcoming.id : null
   }
 }
@@ -95,7 +95,7 @@ export function deleteSession(state: RaceState, sessionId: string): void {
 // DRIVER
 // =========================
 export function addDriver(state: RaceState, sessionId: string, name: string): Driver {
-  console.log(`[SERVICE] Adding driver "${name}" to session ${sessionId}`)
+  // [SERVICE] Adding driver "${name}" to session ${sessionId} (dev only)
 
   const session = getSession(state, sessionId)
   if (!session) {
@@ -134,7 +134,7 @@ export function addDriver(state: RaceState, sessionId: string, name: string): Dr
     carNumber,
   }
 
-  console.log(`[SERVICE] Assigned carNumber=${carNumber} to "${normalizedName}"`)
+  // [SERVICE] Assigned carNumber=${carNumber} to "${normalizedName}" (dev only)
 
   session.drivers.push(driver)
 

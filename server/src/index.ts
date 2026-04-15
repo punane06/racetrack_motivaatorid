@@ -20,7 +20,7 @@ import { loadPersistedState, savePersistedState } from './state/persist.js'
 let env
 try {
   env = loadEnv()
-  console.log('[ENV] All required environment variables are present')
+  // [ENV] All required environment variables are present
 } catch (error) {
   const message = error instanceof Error ? error.message : String(error)
   console.error('[ENV] Error loading environment variables:', message)
@@ -53,7 +53,7 @@ for (const route of firstLevelRoutes) {
 
 // 4. Health check endpoint
 app.get('/health', (req, res) => {
-  console.log('[HEALTH] Health check requested')
+  // [HEALTH] Health check requested
   res.json({
     status: 'ok',
     timestamp: new Date().toISOString(),
@@ -67,10 +67,10 @@ app.get('/health', (req, res) => {
 app.post('/state/reset', (req, res) => {
   const key = req.headers['x-access-key']
   if (key !== env.receptionistKey && key !== env.safetyKey) {
-    console.warn('[STATE] Unauthorized reset attempt')
+    // [STATE] Unauthorized reset attempt
     return res.status(403).json({ ok: false, message: 'Forbidden' })
   }
-  console.log('[STATE] Reset requested — creating fresh state')
+  // [STATE] Reset requested — creating fresh state
   raceState = createInitialState(env.raceDurationSeconds)
   savePersistedState(raceState)
   res.json({ ok: true, message: 'State has been reset' })
@@ -80,7 +80,7 @@ app.post('/state/reset', (req, res) => {
 let raceState = loadPersistedState()
 let shouldRestoreRaceTimer = false;
 if (!raceState) {
-  console.log('[STATE] No persisted state found, creating initial state')
+  // [STATE] No persisted state found, creating initial state
   raceState = createInitialState(env.raceDurationSeconds)
   savePersistedState(raceState)
 }
@@ -115,12 +115,12 @@ const io = new Server<ClientToServerEvents, ServerToClientEvents>(httpServer, {
 
 httpServer.listen(env.port, '0.0.0.0', () => {
   console.log(`Server running on http://0.0.0.0:${env.port}`)
-  console.log(`Race duration: ${env.raceDurationSeconds} seconds`)
+  // Race duration: ${env.raceDurationSeconds} seconds
 })
 
 // 9. Socket connection handlers
 io.on('connection', (socket) => {
-  console.log(`[SOCKET] Client connected: ${socket.id}`)
+  // [SOCKET] Client connected: ${socket.id}
 
   socket.on('state:get', (callback) => {
     callback(raceState)
@@ -137,7 +137,7 @@ io.on('connection', (socket) => {
   registerSessionHandlers(io, socket, raceState)
 
   socket.on('disconnect', () => {
-    console.log(`[SOCKET] Client disconnected: ${socket.id}`)
+    // [SOCKET] Client disconnected: ${socket.id}
   })
 })
 

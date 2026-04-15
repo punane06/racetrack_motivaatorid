@@ -36,12 +36,6 @@ export function loadEnv(): ServerEnv {
 }
 
 export function printEnvUsage() {
-  console.log(`
-SET ENV VARIABLES:
-
-export RECEPTIONIST_KEY=123
-export SAFETY_KEY=123
-export OBSERVER_KEY=123
-export ALLOWED_ORIGINS=http://localhost:5173,http://prod-url
-`)
+  // Usage example for environment variables
+  console.log(`SET ENV VARIABLES:\n\nexport RECEPTIONIST_KEY=123\nexport SAFETY_KEY=123\nexport OBSERVER_KEY=123\nexport ALLOWED_ORIGINS=http://localhost:5173,http://prod-url\n`);
 }

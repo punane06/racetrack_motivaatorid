@@ -7,7 +7,7 @@ import type { LapData } from '@shared/lap'
 import type { RaceMode, RaceState } from '@shared/race'
 import { getCarColor } from '@/lib/carColors'
 
-// PR-ist: abifunktsioonid
+// From PR: helper functions
 function formatTime(seconds: number): string {
   const mins = Math.floor(seconds / 60)
   const secs = seconds % 60
