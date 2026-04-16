@@ -232,7 +232,7 @@ export function registerSessionHandlers(
   // =====================
   // LAP TRACKING
   // =====================
-  socket.on('lap:record', (carNumber: number) => {
+  socket.on('lap-recorded', (carNumber: number) => {
     if (!isAuthorized()) {
       socket.emit('operation:error', 'Unauthorized')
       return
