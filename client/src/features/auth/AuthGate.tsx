@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { useToast } from '@/lib/toast'
 import type { PropsWithChildren } from 'react'
 import { useLocation } from 'react-router-dom'
-import { appSocket } from '@/lib/socket'
+import { employeeSocket } from '@/lib/socket'
 
 const roleByPath: Record<string, 'receptionist' | 'safety' | 'observer'> = {
   '/front-desk': 'receptionist',
@@ -34,18 +34,27 @@ export function AuthGate({ children }: Readonly<PropsWithChildren>) {
       showToast('Please enter the access key.', 'error')
       return
     }
-    appSocket.emit(
-      'auth:check',
-      { role, key: value },
-      (result: { ok: boolean; message?: string }) => {
-        if (result.ok) {
-          setUnlocked(true)
-        } else {
-          showToast('Incorrect access key', 'error')
-          setValue('')
-        }
-      }
-    )
+
+    // Ensure we start from a clean disconnected state
+    if (employeeSocket.connected) {
+      employeeSocket.disconnect()
+    }
+
+    employeeSocket.auth = { role, key: value }
+
+    const onConnect = () => {
+      employeeSocket.off('connect_error', onError)
+      setUnlocked(true)
+    }
+    const onError = () => {
+      employeeSocket.off('connect', onConnect)
+      showToast('Incorrect access key', 'error')
+      setValue('')
+    }
+
+    employeeSocket.once('connect', onConnect)
+    employeeSocket.once('connect_error', onError)
+    employeeSocket.connect()
   }
 
   return (

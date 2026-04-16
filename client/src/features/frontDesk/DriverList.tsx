@@ -1,4 +1,4 @@
-import { appSocket } from '@/lib/socket'
+import { employeeSocket } from '@/lib/socket'
 import type { Driver } from '@shared/session'
 
 import { DriverCard } from './DriverCard'
@@ -28,12 +28,12 @@ export function DriverList({ sessionId, drivers, onEdit, onRemove, sessionStatus
     const driver = sortedDrivers[idx];
     const swapDriver = sortedDrivers[swapIdx];
     // Swap car numbers
-    appSocket.emit('driver:assign_car', {
+    employeeSocket.emit('driver:assign_car', {
       sessionId,
       driverId: driver.id,
       carNumber: swapDriver.carNumber,
     });
-    appSocket.emit('driver:assign_car', {
+    employeeSocket.emit('driver:assign_car', {
       sessionId,
       driverId: swapDriver.id,
       carNumber: driver.carNumber,

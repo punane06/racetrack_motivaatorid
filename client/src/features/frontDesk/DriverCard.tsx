@@ -4,7 +4,7 @@ import type { DragEvent } from 'react'
 import type { Driver } from '@shared/session'
 
 import { DriverEditor } from './DriverEditor'
-import { appSocket } from '@/lib/socket'
+import { employeeSocket } from '@/lib/socket'
 import { getCarColor } from '@/lib/carColors'
 
 export interface DriverCardProps {
@@ -141,7 +141,7 @@ export function DriverCard({ sessionId, driver, onEdit, onRemove, sessionStatus,
             onChange={e => {
               const newCar = Number(e.target.value)
               setCarSelectError(null)
-              appSocket.emit('driver:assign_car', {
+              employeeSocket.emit('driver:assign_car', {
                 sessionId,
                 driverId: driver.id,
                 carNumber: newCar,

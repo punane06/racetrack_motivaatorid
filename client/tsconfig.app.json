@@ -10,7 +10,9 @@
     ],
     "module": "ESNext",
     "types": [
-      "vite/client"
+      "vite/client",
+      "vitest/globals",
+      "@testing-library/jest-dom"
     ],
     "skipLibCheck": true,
     "moduleResolution": "bundler",
@@ -25,7 +27,6 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
-    "ignoreDeprecations": "6.0",
     "paths": {
       "@/*": [
         "./src/*"

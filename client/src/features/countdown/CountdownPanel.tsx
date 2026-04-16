@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { RaceState } from '@shared/race'
-import { appSocket } from '@/lib/socket'
+import { publicSocket } from '@/lib/socket'
 
 function formatTime(seconds: number): string {
   const mins = Math.floor(seconds / 60)
@@ -18,21 +18,21 @@ export function CountdownPanel() {
       setRaceState((prev) => (prev ? { ...prev, timeRemainingSeconds: remainingSeconds } : prev))
     }
     const fetchState = () => {
-      appSocket.emit('state:get', (state: RaceState) => setRaceState(state))
+      publicSocket.emit('state:get', (state: RaceState) => setRaceState(state))
     }
     const onFullscreenChange = () => setIsFullscreen(Boolean(document.fullscreenElement))
 
-    appSocket.on('connect', fetchState)
-    appSocket.on('state:updated', onStateUpdated)
-    appSocket.on('race:tick', onRaceTick)
+    publicSocket.on('connect', fetchState)
+    publicSocket.on('state:updated', onStateUpdated)
+    publicSocket.on('race:tick', onRaceTick)
     document.addEventListener('fullscreenchange', onFullscreenChange)
 
-    if (appSocket.connected) fetchState()
+    if (publicSocket.connected) fetchState()
 
     return () => {
-      appSocket.off('connect', fetchState)
-      appSocket.off('state:updated', onStateUpdated)
-      appSocket.off('race:tick', onRaceTick)
+      publicSocket.off('connect', fetchState)
+      publicSocket.off('state:updated', onStateUpdated)
+      publicSocket.off('race:tick', onRaceTick)
       document.removeEventListener('fullscreenchange', onFullscreenChange)
     }
   }, [])

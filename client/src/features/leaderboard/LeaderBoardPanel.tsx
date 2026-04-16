@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from 'react'
 import { useToast } from '@/lib/toast'
 import { useRaceState } from '@/hooks/useRaceState'
-import { appSocket } from '@/lib/socket'
+import { publicSocket } from '@/lib/socket'
 import type { RaceSession } from '@shared/session'
 import type { LapData } from '@shared/lap'
 import type { RaceMode, RaceState } from '@shared/race'
@@ -72,16 +72,16 @@ export function LeaderBoardPanel() {
 
   useEffect(() => {
     const onSessionsUpdated = (updatedSessions: RaceSession[]) => setSessions(updatedSessions)
-    appSocket.on('sessions:updated', onSessionsUpdated)
-    appSocket.emit('state:get', (state: RaceState) => setSessions(state.sessions))
+    publicSocket.on('sessions:updated', onSessionsUpdated)
+    publicSocket.emit('state:get', (state: RaceState) => setSessions(state.sessions))
     const onFullscreenChange = () => setIsFullscreen(Boolean(document.fullscreenElement))
     document.addEventListener('fullscreenchange', onFullscreenChange)
     // Connection error toast
     const onDisconnect = () => showToast('Connection lost. Trying to reconnect…', 'error');
-    appSocket.on('disconnect', onDisconnect);
+    publicSocket.on('disconnect', onDisconnect);
     return () => {
-      appSocket.off('sessions:updated', onSessionsUpdated)
-      appSocket.off('disconnect', onDisconnect)
+      publicSocket.off('sessions:updated', onSessionsUpdated)
+      publicSocket.off('disconnect', onDisconnect)
       document.removeEventListener('fullscreenchange', onFullscreenChange)
     }
   }, [showToast])

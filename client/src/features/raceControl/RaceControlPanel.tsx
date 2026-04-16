@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useToast } from '@/lib/toast';
 import { useConfirm } from '@/lib/confirm';
-import { appSocket } from '../../lib/socket';
+import { employeeSocket } from '../../lib/socket';
 import type { RaceState, RaceMode } from '@shared/race';
 
 const MODE_COLORS: Record<RaceMode, string> = {
@@ -18,29 +18,29 @@ export function RaceControlPanel() {
 
   useEffect(() => {
     const onStateUpdated = (state: RaceState) => setRaceState(state);
-    appSocket.on('state:updated', onStateUpdated);
-    appSocket.on('race:tick', () => {});
-    appSocket.emit('state:get', (state) => setRaceState(state));
+    employeeSocket.on('state:updated', onStateUpdated);
+    employeeSocket.on('race:tick', () => {});
+    employeeSocket.emit('state:get', (state) => setRaceState(state));
     return () => {
-      appSocket.off('state:updated', onStateUpdated);
-      appSocket.off('race:tick', () => {});
+      employeeSocket.off('state:updated', onStateUpdated);
+      employeeSocket.off('race:tick', () => {});
     };
   }, []);
 
   const startRace = () => {
-    appSocket.emit('race:start');
+    employeeSocket.emit('race:start');
     showToast('Race started', 'success');
   };
 
   const endSession = async () => {
     if (await confirm('End this session?')) {
-      appSocket.emit('race:end_session');
+      employeeSocket.emit('race:end_session');
       showToast('Session ended', 'success');
     }
   };
 
   const changeMode = (mode: RaceMode) => {
-    appSocket.emit('race-mode-change', mode);
+    employeeSocket.emit('race-mode-change', mode);
     showToast(`Race mode set to ${mode.toUpperCase()}`, 'info');
   };
 
