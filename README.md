@@ -100,6 +100,23 @@ See [.env.example](./client/.env.example) for usage. Copy it to `client/.env` an
 
 The server will not start unless all required access keys are provided.
 
+
+### Server CORS configuration
+
+To control which client origins are allowed to connect to the server (CORS), set the environment variable:
+
+```
+ALLOWED_ORIGINS=http://localhost:5173,http://your-prod-url
+```
+
+Use a comma-separated list for multiple origins. To allow all origins (not recommended for production), use:
+
+```
+ALLOWED_ORIGINS=*
+```
+
+If not set, defaults to '*'.
+
 See [.env.example](./.env.example) for all required and optional variables. Copy it to `.env` and fill in your own values.
 
 Example for Linux/macOS:
