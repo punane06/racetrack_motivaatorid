@@ -5,6 +5,14 @@ import type { RaceSession } from '@shared/session.js'
 import { recordLap } from '../../services/lapService.js'
 import { getLeaderboard } from '../../services/leaderboardService.js'
 import { savePersistedState } from '../../state/persist.js'
+import {
+  createSession,
+  deleteSession,
+  addDriver,
+  editDriver,
+  removeDriver
+} from '../../services/sessionService.js'
+import { AppError } from '../../errors/AppError.js'
 
 let raceInterval: NodeJS.Timeout | null = null
 
@@ -159,47 +167,17 @@ export function registerSessionHandlers(
         socket.emit('operation:error', 'Cannot modify drivers or sessions while race is running')
         return
       }
-      const session = raceState.sessions.find(s => s.id === sessionId)
-      if (!session) {
-        socket.emit('operation:error', 'Session not found')
-        return
+      try {
+        addDriver(raceState, sessionId, name)
+        broadcastState(io, raceState)
+        savePersistedState(raceState)
+      } catch (err) {
+        if (err instanceof AppError) {
+          socket.emit('operation:error', err.message)
+        } else {
+          socket.emit('operation:error', 'Unknown error')
+        }
       }
-      if (session.status !== 'upcoming') {
-        socket.emit('operation:error', 'Cannot add driver unless session is upcoming')
-        return
-      }
-      if (session.drivers.length >= 8) {
-        socket.emit('operation:error', 'Maximum 8 drivers per session')
-        return
-      }
-      const normalizedName = name.trim()
-      if (!normalizedName) {
-        socket.emit('operation:error', 'Driver name is required')
-        return
-      }
-      const duplicate = session.drivers.find(d => d.name.toLowerCase() === normalizedName.toLowerCase())
-      if (duplicate) {
-        socket.emit('operation:error', 'Driver name must be unique within session')
-        return
-      }
-      // Find first available car number
-      const usedCars = new Set(session.drivers.map(d => d.carNumber))
-      let carNumber: number | null = null
-      for (let i = 1; i <= 8; i++) {
-        if (!usedCars.has(i)) { carNumber = i; break }
-      }
-      if (!carNumber) {
-        socket.emit('operation:error', 'No available car numbers')
-        return
-      }
-      const newDriver = {
-        id: crypto.randomUUID(),
-        name: normalizedName,
-        carNumber,
-      }
-      session.drivers.push(newDriver)
-      broadcastState(io, raceState)
-      savePersistedState(raceState)
     })
   function isAuthorized() {
     return (
@@ -220,22 +198,17 @@ export function registerSessionHandlers(
       socket.emit('operation:error', 'Cannot modify drivers or sessions while race is running')
       return
     }
-
-    const newSession: RaceSession = {
-      id: crypto.randomUUID(),
-      label: label?.trim() || `Session ${raceState.sessions.length + 1}`,
-      drivers: [],
-      status: 'upcoming',
+    try {
+      createSession(raceState, label)
+      broadcastState(io, raceState)
+      savePersistedState(raceState)
+    } catch (err) {
+      if (err instanceof AppError) {
+        socket.emit('operation:error', err.message)
+      } else {
+        socket.emit('operation:error', 'Unknown error')
+      }
     }
-
-    raceState.sessions.push(newSession)
-
-    if (!raceState.upcomingSessionId) {
-      raceState.upcomingSessionId = newSession.id
-    }
-
-    broadcastState(io, raceState)
-    savePersistedState(raceState)
   })
 
   // =====================
@@ -250,22 +223,17 @@ export function registerSessionHandlers(
       socket.emit('operation:error', 'Cannot modify drivers or sessions while race is running')
       return
     }
-    const index = raceState.sessions.findIndex(s => s.id === sessionId)
-    if (index === -1) {
-      socket.emit('operation:error', 'Session not found')
-      return
+    try {
+      deleteSession(raceState, sessionId)
+      broadcastState(io, raceState)
+      savePersistedState(raceState)
+    } catch (err) {
+      if (err instanceof AppError) {
+        socket.emit('operation:error', err.message)
+      } else {
+        socket.emit('operation:error', 'Unknown error')
+      }
     }
-    if (raceState.sessions[index].status !== 'upcoming') {
-      socket.emit('operation:error', 'Can only delete upcoming sessions')
-      return
-    }
-    raceState.sessions.splice(index, 1)
-    if (raceState.upcomingSessionId === sessionId) {
-      const next = raceState.sessions.find(s => s.status === 'upcoming')
-      raceState.upcomingSessionId = next?.id ?? null
-    }
-    broadcastState(io, raceState)
-    savePersistedState(raceState)
   })
 
   // =====================
@@ -322,25 +290,17 @@ export function registerSessionHandlers(
       socket.emit('operation:error', 'Cannot modify drivers or sessions while race is running')
       return
     }
-    const session = raceState.sessions.find(s => s.id === sessionId)
-    if (session?.status !== 'upcoming') {
-      socket.emit('operation:error', 'Session not found or not editable')
-      return
+    try {
+      editDriver(raceState, sessionId, driverId, name)
+      broadcastState(io, raceState)
+      savePersistedState(raceState)
+    } catch (err) {
+      if (err instanceof AppError) {
+        socket.emit('operation:error', err.message)
+      } else {
+        socket.emit('operation:error', 'Unknown error')
+      }
     }
-    const normalizedName = name.trim()
-    const duplicate = session.drivers.find(d => d.id !== driverId && d.name.toLowerCase() === normalizedName.toLowerCase())
-    if (duplicate) {
-      socket.emit('operation:error', 'Driver name must be unique within session')
-      return
-    }
-    const driver = session.drivers.find(d => d.id === driverId)
-    if (!driver) {
-      socket.emit('operation:error', 'Driver not found')
-      return
-    }
-    driver.name = normalizedName
-    broadcastState(io, raceState)
-    savePersistedState(raceState)
   })
 
   // =====================
@@ -355,19 +315,17 @@ export function registerSessionHandlers(
       socket.emit('operation:error', 'Cannot modify drivers or sessions while race is running')
       return
     }
-    const session = raceState.sessions.find(s => s.id === sessionId)
-    if (session?.status !== 'upcoming') {
-      socket.emit('operation:error', 'Session not found or not editable')
-      return
+    try {
+      removeDriver(raceState, sessionId, driverId)
+      broadcastState(io, raceState)
+      savePersistedState(raceState)
+    } catch (err) {
+      if (err instanceof AppError) {
+        socket.emit('operation:error', err.message)
+      } else {
+        socket.emit('operation:error', 'Unknown error')
+      }
     }
-    const index = session.drivers.findIndex(d => d.id === driverId)
-    if (index === -1) {
-      socket.emit('operation:error', 'Driver not found')
-      return
-    }
-    session.drivers.splice(index, 1)
-    broadcastState(io, raceState)
-    savePersistedState(raceState)
   })
 
   // =====================
