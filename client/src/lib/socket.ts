@@ -4,11 +4,9 @@ import type { Socket } from 'socket.io-client'
 import type { ClientToServerEvents, ServerToClientEvents } from '@shared/events'
 
 
-const hasWindow = typeof globalThis.window === 'object';
-const serverUrl = import.meta.env.VITE_SERVER_URL ?? 
-  (hasWindow
-    ? `${globalThis.location.protocol}//${globalThis.location.hostname}:3000`
-    : 'http://localhost:3000');
+
+// Kui VITE_SERVER_URL on määratud, kasuta seda. Kui mitte, kasuta vaikimisi '' (sama host/proxy kaudu)
+const serverUrl = import.meta.env.VITE_SERVER_URL || '';
 
 export const appSocket: Socket<ServerToClientEvents, ClientToServerEvents> = io(
   serverUrl,
