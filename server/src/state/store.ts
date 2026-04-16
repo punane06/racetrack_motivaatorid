@@ -1,4 +1,4 @@
-import type { RaceState } from '@shared/race.js'
+import type { RaceState } from 'shared/race.js'
 
 export function createInitialState(raceDurationSeconds: number): RaceState {
   return {

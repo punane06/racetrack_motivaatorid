@@ -15,7 +15,7 @@ export function socketAuthMiddleware(accessKeys: AccessKeys) {
     next()
   }
 }
-import type { EmployeeRole } from '@shared/constants.js'
+import type { EmployeeRole } from 'shared/constants.js'
 
 interface AccessKeys {
   receptionist: string

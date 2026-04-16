@@ -1,7 +1,6 @@
 import dotenv from 'dotenv'
 dotenv.config()
 
-import { loadEnv, printEnvUsage } from './config/env.js'
 import cors from 'cors'
 import express from 'express'
 import { createServer } from 'node:http'
@@ -9,14 +8,14 @@ import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { Server } from 'socket.io'
 
-import { EMPLOYEE_ROUTES, PUBLIC_ROUTES } from '@shared/constants.js'
-import type { ClientToServerEvents, ServerToClientEvents } from '@shared/events.js'
+import { EMPLOYEE_ROUTES, PUBLIC_ROUTES } from 'shared/constants.js'
+import type { ClientToServerEvents, ServerToClientEvents } from 'shared/events.js'
 
+import { loadEnv, printEnvUsage } from './config/env.js'
 import { buildAccessKeys, socketAuthMiddleware } from './socket/auth.js'
 import { registerSessionHandlers, startRaceTimer } from './socket/handlers/sessionHandlers.js'
-
-import { createInitialState } from './state/store.js'
 import { loadPersistedState, savePersistedState } from './state/persist.js'
+import { createInitialState } from './state/store.js'
 
 // =========================
 // 1. ENV
@@ -74,7 +73,7 @@ if (!raceState) {
   savePersistedState(raceState)
 }
 
-// 🔥 RESTORE TIMER
+// restore timer
 if (raceState.status === 'running' && raceState.startedAt) {
   const elapsedMs = Date.now() - raceState.startedAt
   const durationMs = (raceState.raceDurationSeconds ?? 600) * 1000
@@ -141,45 +140,34 @@ const io = new Server<ClientToServerEvents, ServerToClientEvents>(httpServer, {
 // =========================
 // 8. ACCESS KEYS
 // =========================
-const accessKeys = buildAccessKeys(
-  env.receptionistKey,
-  env.safetyKey,
-  env.observerKey
-)
+const accessKeys = buildAccessKeys(env.receptionistKey, env.safetyKey, env.observerKey)
 
 // =========================
-// 9. AUTH MIDDLEWARE & CONNECTION
+// 9. SOCKET NAMESPACES
 // =========================
-io.use(socketAuthMiddleware(accessKeys))
-
+// Public screens use the default namespace (no access key required)
 io.on('connection', (socket) => {
-  console.log(`[SOCKET] Ühendus: ${socket.id} IP: ${socket.handshake.address}`)
+  console.log(`[SOCKET][public] connected: ${socket.id} IP: ${socket.handshake.address}`)
   socket.on('disconnect', (reason) => {
-    console.log(`[SOCKET] Katkestus: ${socket.id} põhjus: ${reason}`)
+    console.log(`[SOCKET][public] disconnected: ${socket.id} reason: ${reason}`)
   })
-  // 🔥 anna state kohe frontendile
-  socket.on('state:get', (cb) => {
-    cb(raceState)
+  socket.on('state:get', (cb) => cb(raceState))
+})
+
+// Employee screens connect to /employee and must provide access key BEFORE connection is established
+const employeeNsp = io.of('/employee')
+employeeNsp.use(socketAuthMiddleware(accessKeys))
+employeeNsp.on('connection', (socket) => {
+  console.log(
+    `[SOCKET][employee] connected: ${socket.id} IP: ${socket.handshake.address} role: ${socket.data.role}`,
+  )
+  socket.on('disconnect', (reason) => {
+    console.log(`[SOCKET][employee] disconnected: ${socket.id} reason: ${reason}`)
   })
 
-  // AUTH:CHECK handler for login
-  socket.on('auth:check', async ({ role, key }, cb) => {
-    try {
-      const ok = await import('./socket/auth.js').then(m => m.validateAccess(role, key, accessKeys))
-      console.log(`[AUTH:CHECK] role=${role} key=${key} result=${ok}`)
-      if (ok) {
-        socket.data.role = role
-        cb({ ok: true })
-      } else {
-        cb({ ok: false, message: 'Invalid access key' })
-      }
-    } catch (err) {
-      console.error('[AUTH:CHECK] error:', err)
-      cb({ ok: false, message: 'Server error' })
-    }
-  })
+  socket.on('state:get', (cb) => cb(raceState))
 
-  // 🔥 REGISTER HANDLERS
+  // state mutation handlers
   registerSessionHandlers(io, socket, raceState)
 })
 
@@ -196,3 +184,4 @@ httpServer.listen(env.port, '0.0.0.0', () => {
 if (shouldRestoreRaceTimer) {
   startRaceTimer(io, raceState)
 }
+

@@ -1,7 +1,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { recordLap } from './lapService.js';
-import type { RaceState } from '@shared/race.js';
+import type { RaceState } from 'shared/race.js';
 
 function makeState(status: 'idle' | 'running' | 'finished', mode: 'safe' | 'hazard' | 'danger' | 'finish'): RaceState {
   return {

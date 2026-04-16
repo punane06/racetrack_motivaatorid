@@ -1,4 +1,4 @@
-import type { RaceState } from '@shared/race.js'
+import type { RaceState } from 'shared/race.js'
 
 export function recordLap(state: RaceState, carNumber: number) {
     if (state.status !== 'running' && state.mode !== 'finish') return null

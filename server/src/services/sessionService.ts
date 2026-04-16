@@ -1,44 +1,9 @@
-// Assign car to driver (Prompt 11)
-export function assignCarToDriver(
-  state: RaceState,
-  sessionId: string,
-  driverId: string,
-  carNumber: number
-): void {
-  if (carNumber < 1 || carNumber > 8) {
-    throw new AppError(ErrorCodes.INVALID_PAYLOAD, 'Car number must be between 1 and 8')
-  }
-  const session = getSession(state, sessionId)
-  if (!session) {
-    throw new AppError(ErrorCodes.SESSION_NOT_FOUND, 'Session not found')
-  }
-  if (session.status !== 'upcoming') {
-    throw new AppError(ErrorCodes.INVALID_PAYLOAD, 'Cannot edit drivers or assign cars unless session is upcoming')
-  }
-  const driver = session.drivers.find((d) => d.id === driverId)
-  if (!driver) {
-    throw new AppError(ErrorCodes.DRIVER_NOT_FOUND, 'Driver not found')
-  }
-  // Check if car is already assigned to another driver
-  const taken = session.drivers.find((d) => d.carNumber === carNumber && d.id !== driverId)
-  if (taken) {
-    throw new AppError(ErrorCodes.INVALID_PAYLOAD, 'Car is already assigned to another driver')
-  }
-  // If car number is the same, do nothing
-  if (driver.carNumber === carNumber) return
-  // If another driver has the desired car, swap
-  const swapDriver = session.drivers.find((d) => d.carNumber === carNumber)
-  if (swapDriver) {
-    swapDriver.carNumber = driver.carNumber
-  }
-  driver.carNumber = carNumber
-}
 import crypto from 'node:crypto'
 
-import type { RaceState } from '@shared/race.js';
-import type { RaceSession, Driver } from '@shared/session.js';
-import { AppError } from '../errors/AppError.js';
-import { ErrorCodes } from '../errors/errorCodes.js';
+import type { RaceState } from 'shared/race.js'
+import type { Driver, RaceSession } from 'shared/session.js'
+import { AppError } from '../errors/AppError.js'
+import { ErrorCodes } from '../errors/errorCodes.js'
 
 // =========================
 // SESSION
@@ -201,6 +166,42 @@ export function removeDriver(state: RaceState, sessionId: string, driverId: stri
 
   session.drivers.splice(index, 1)
   // Do not reindex car numbers! Freed car numbers will be reused by addDriver via findAvailableCar.
+}
+
+export function assignCarToDriver(
+  state: RaceState,
+  sessionId: string,
+  driverId: string,
+  carNumber: number,
+): void {
+  if (carNumber < 1 || carNumber > 8) {
+    throw new AppError(ErrorCodes.INVALID_PAYLOAD, 'Car number must be between 1 and 8')
+  }
+  const session = getSession(state, sessionId)
+  if (!session) {
+    throw new AppError(ErrorCodes.SESSION_NOT_FOUND, 'Session not found')
+  }
+  if (session.status !== 'upcoming') {
+    throw new AppError(
+      ErrorCodes.INVALID_PAYLOAD,
+      'Cannot edit drivers or assign cars unless session is upcoming',
+    )
+  }
+
+  const driver = session.drivers.find((d) => d.id === driverId)
+  if (!driver) {
+    throw new AppError(ErrorCodes.DRIVER_NOT_FOUND, 'Driver not found')
+  }
+
+  // If car number is the same, do nothing
+  if (driver.carNumber === carNumber) return
+
+  // Swap car numbers if the target car is already taken in this session
+  const otherDriver = session.drivers.find((d) => d.carNumber === carNumber && d.id !== driverId)
+  if (otherDriver) {
+    otherDriver.carNumber = driver.carNumber
+  }
+  driver.carNumber = carNumber
 }
 
 // =========================
