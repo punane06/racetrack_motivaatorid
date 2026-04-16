@@ -152,15 +152,47 @@ export function registerSessionHandlers(
         socket.emit('operation:error', 'Unauthorized')
         return
       }
-      const session = raceState.sessions.find((s: any) => s.id === sessionId)
+      if (raceState.status === 'running') {
+        socket.emit('operation:error', 'Cannot modify drivers or sessions while race is running')
+        return
+      }
+      const session = raceState.sessions.find(s => s.id === sessionId)
       if (!session) {
         socket.emit('operation:error', 'Session not found')
         return
       }
+      if (session.status !== 'upcoming') {
+        socket.emit('operation:error', 'Cannot add driver unless session is upcoming')
+        return
+      }
+      if (session.drivers.length >= 8) {
+        socket.emit('operation:error', 'Maximum 8 drivers per session')
+        return
+      }
+      const normalizedName = name.trim()
+      if (!normalizedName) {
+        socket.emit('operation:error', 'Driver name is required')
+        return
+      }
+      const duplicate = session.drivers.find(d => d.name.toLowerCase() === normalizedName.toLowerCase())
+      if (duplicate) {
+        socket.emit('operation:error', 'Driver name must be unique within session')
+        return
+      }
+      // Find first available car number
+      const usedCars = new Set(session.drivers.map(d => d.carNumber))
+      let carNumber: number | null = null
+      for (let i = 1; i <= 8; i++) {
+        if (!usedCars.has(i)) { carNumber = i; break }
+      }
+      if (!carNumber) {
+        socket.emit('operation:error', 'No available car numbers')
+        return
+      }
       const newDriver = {
         id: crypto.randomUUID(),
-        name: name.trim(),
-        carNumber: session.drivers.length + 1,
+        name: normalizedName,
+        carNumber,
       }
       session.drivers.push(newDriver)
       broadcastState(io, raceState)
