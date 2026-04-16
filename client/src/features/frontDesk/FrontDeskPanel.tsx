@@ -73,9 +73,8 @@ export function FrontDeskPanel() {
   }
 
 
+
   const upcomingSessions = sessions.filter(s => s.status === 'upcoming');
-  const activeSessions = sessions.filter(s => s.status === 'active');
-  const finishedSessions = sessions.filter(s => s.status === 'finished');
 
   return (
     <section className="panel">
@@ -95,40 +94,20 @@ export function FrontDeskPanel() {
         <button type="submit">Add Session</button>
       </form>
 
-
-
-      {upcomingSessions.length > 0 && <>
-        <h3>Upcoming Sessions</h3>
-        <SessionList
-          sessions={upcomingSessions}
-          onDelete={deleteSession}
-          onAddDriver={addDriver}
-          onEditDriver={editDriver}
-          onRemoveDriver={removeDriver}
-        />
-      </>}
-
-      {activeSessions.length > 0 && <>
-        <h3>Active Sessions</h3>
-        <SessionList
-          sessions={activeSessions}
-          onDelete={() => {}}
-          onAddDriver={() => {}}
-          onEditDriver={() => {}}
-          onRemoveDriver={() => {}}
-        />
-      </>}
-
-      {finishedSessions.length > 0 && <>
-        <h3>Finished Sessions</h3>
-        <SessionList
-          sessions={finishedSessions}
-          onDelete={() => {}}
-          onAddDriver={() => {}}
-          onEditDriver={() => {}}
-          onRemoveDriver={() => {}}
-        />
-      </>}
+      {upcomingSessions.length > 0 ? (
+        <>
+          <h3>Upcoming Sessions</h3>
+          <SessionList
+            sessions={upcomingSessions}
+            onDelete={deleteSession}
+            onAddDriver={addDriver}
+            onEditDriver={editDriver}
+            onRemoveDriver={removeDriver}
+          />
+        </>
+      ) : (
+        <p className="muted">No upcoming sessions. Add a new session to get started.</p>
+      )}
     </section>
   );
 }
