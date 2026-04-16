@@ -73,32 +73,30 @@ export function FrontDeskPanel() {
   }
 
 
+
   const upcomingSessions = sessions.filter(s => s.status === 'upcoming');
-  const activeSessions = sessions.filter(s => s.status === 'active');
-  const finishedSessions = sessions.filter(s => s.status === 'finished');
 
   return (
     <section className="panel">
       <div className="front-desk-header">
         <h2>Front Desk</h2>
-        <p className="muted">Create sessions and manage drivers with automatic car assignment.</p>
+        <p className="muted">Create sessions and manage drivers.</p>
       </div>
 
       <form className="session-create-form" onSubmit={createSession}>
         <input
           type="text"
           value={label}
-          onChange={(event) => setLabel(event.target.value)}
+          onChange={(e) => setLabel(e.target.value)}
           placeholder="Session name (e.g. Session 1)"
           aria-label="Session name"
         />
         <button type="submit">Add Session</button>
       </form>
 
-
-
-      {upcomingSessions.length > 0 && <>
-        <h3>Upcoming Sessions</h3>
+      {upcomingSessions.length === 0 ? (
+        <p className="muted">No upcoming sessions. Add a new session above.</p>
+      ) : (
         <SessionList
           sessions={upcomingSessions}
           onDelete={deleteSession}
@@ -106,29 +104,9 @@ export function FrontDeskPanel() {
           onEditDriver={editDriver}
           onRemoveDriver={removeDriver}
         />
-      </>}
-
-      {activeSessions.length > 0 && <>
-        <h3>Active Sessions</h3>
-        <SessionList
-          sessions={activeSessions}
-          onDelete={() => {}}
-          onAddDriver={() => {}}
-          onEditDriver={() => {}}
-          onRemoveDriver={() => {}}
-        />
-      </>}
-
-      {finishedSessions.length > 0 && <>
-        <h3>Finished Sessions</h3>
-        <SessionList
-          sessions={finishedSessions}
-          onDelete={() => {}}
-          onAddDriver={() => {}}
-          onEditDriver={() => {}}
-          onRemoveDriver={() => {}}
-        />
-      </>}
+      )}
+      
+      {/* Lõpetatud sessioone EI kuvata vastavalt nõudele */}
     </section>
-  );
+  )
 }

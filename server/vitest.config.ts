@@ -9,4 +9,10 @@ export default defineConfig({
       reporter: ['text', 'json', 'html'],
     },
   },
+  resolve: {
+    alias: {
+      '@shared': '../shared',
+      '@shared/*': '../shared/*',
+    },
+  },
 });

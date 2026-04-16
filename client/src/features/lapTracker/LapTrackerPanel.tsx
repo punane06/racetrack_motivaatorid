@@ -49,10 +49,31 @@ export function LapTrackerPanel() {
     return () => window.removeEventListener('resize', onResize);
   }, []);
 
+  useEffect(() => {
+    // Show toast on successful lap recording (handle array)
+    const onLapRecorded = (lapData: any[]) => {
+      if (Array.isArray(lapData)) {
+        lapData.forEach(lap => {
+          if (lap && typeof lap.carNumber === 'number') {
+            showToast(`Lap recorded for car ${lap.carNumber}`, 'success');
+          }
+        });
+      }
+    };
+    const onOperationError = (msg: string) => {
+      showToast(msg, 'error');
+    };
+    appSocket.on('lap-recorded', onLapRecorded);
+    appSocket.on('operation:error', onOperationError);
+    return () => {
+      appSocket.off('lap-recorded', onLapRecorded);
+      appSocket.off('operation:error', onOperationError);
+    };
+  }, [showToast]);
+
   const handleLap = useCallback((carNumber: number) => {
     appSocket.emit('lap-recorded', carNumber);
-    showToast(`Lap recorded for car ${carNumber}`, 'success');
-  }, [showToast]);
+  }, []);
 
   let content = null;
   if (!raceState) {

@@ -75,9 +75,11 @@
 }
 /* Accessibility: global focus-visible outline */
 :focus-visible {
-  outline: 2px solid #2563eb;
-  outline-offset: 2px;
+  outline: 3px solid #2563eb;
+  outline-offset: 3px;
   z-index: 2;
+  box-shadow: 0 0 0 3px #e0e7ff;
+  transition: outline 0.1s, box-shadow 0.1s;
 }
 /* Visually hidden utility for accessibility */
 .sr-only {
@@ -325,7 +327,7 @@ button.danger {
   margin: 0.75rem 0;
   padding: 0.9rem 1rem;
   border-radius: 0.5rem;
-  background: #ffd400;
+  background: #e6b800; /* improved contrast yellow */
   color: #222;
   font-weight: 800;
   font-size: clamp(1rem, 2vw, 1.4rem);
@@ -370,7 +372,7 @@ button.danger {
 }
 
 .flag-hazard {
-  background: #ffd400;
+  background: #e6b800; /* improved contrast yellow */
 }
 
 .flag-danger {

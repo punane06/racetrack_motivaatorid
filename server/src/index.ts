@@ -12,7 +12,7 @@ import { Server } from 'socket.io'
 import { EMPLOYEE_ROUTES, PUBLIC_ROUTES } from '@shared/constants.js'
 import type { ClientToServerEvents, ServerToClientEvents } from '@shared/events.js'
 
-import { buildAccessKeys, validateAccess } from './socket/auth.js'
+import { buildAccessKeys, socketAuthMiddleware } from './socket/auth.js'
 import { registerSessionHandlers, startRaceTimer } from './socket/handlers/sessionHandlers.js'
 
 import { createInitialState } from './state/store.js'
@@ -148,27 +148,35 @@ const accessKeys = buildAccessKeys(
 )
 
 // =========================
-// 9. CONNECTION
+// 9. AUTH MIDDLEWARE & CONNECTION
 // =========================
-io.on('connection', (socket) => {
+io.use(socketAuthMiddleware(accessKeys))
 
+io.on('connection', (socket) => {
+  console.log(`[SOCKET] Ühendus: ${socket.id} IP: ${socket.handshake.address}`)
+  socket.on('disconnect', (reason) => {
+    console.log(`[SOCKET] Katkestus: ${socket.id} põhjus: ${reason}`)
+  })
   // 🔥 anna state kohe frontendile
   socket.on('state:get', (cb) => {
     cb(raceState)
   })
 
-  // 🔐 AUTH
+  // AUTH:CHECK handler for login
   socket.on('auth:check', async ({ role, key }, cb) => {
-    const ok = await validateAccess(role, key, accessKeys)
-
-    if (ok) {
-      socket.data.role = role
+    try {
+      const ok = await import('./socket/auth.js').then(m => m.validateAccess(role, key, accessKeys))
+      console.log(`[AUTH:CHECK] role=${role} key=${key} result=${ok}`)
+      if (ok) {
+        socket.data.role = role
+        cb({ ok: true })
+      } else {
+        cb({ ok: false, message: 'Invalid access key' })
+      }
+    } catch (err) {
+      console.error('[AUTH:CHECK] error:', err)
+      cb({ ok: false, message: 'Server error' })
     }
-
-    cb({
-      ok,
-      message: ok ? undefined : 'Invalid access key'
-    })
   })
 
   // 🔥 REGISTER HANDLERS

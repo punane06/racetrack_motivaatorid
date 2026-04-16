@@ -1,10 +1,17 @@
 import type { Server, Socket } from 'socket.io'
 import type { RaceState } from '@shared/race.js'
-import type { RaceSession } from '@shared/session.js'
 
 import { recordLap } from '../../services/lapService.js'
 import { getLeaderboard } from '../../services/leaderboardService.js'
 import { savePersistedState } from '../../state/persist.js'
+import {
+  createSession,
+  deleteSession,
+  addDriver,
+  editDriver,
+  removeDriver
+} from '../../services/sessionService.js'
+import { AppError } from '../../errors/AppError.js'
 
 let raceInterval: NodeJS.Timeout | null = null
 
@@ -57,7 +64,7 @@ export function startRaceTimer(io: Server, state: RaceState) {
 // START RACE
 // =========================
 function startRace(io: Server, state: RaceState) {
-  if (state.status === 'running') return
+  if (state.status === 'running') return false
 
   const nextSession = state.sessions.find(s => s.status === 'upcoming')
 
@@ -74,7 +81,8 @@ function startRace(io: Server, state: RaceState) {
   state.activeSessionId = nextSession.id
   nextSession.status = 'active'
 
-  state.upcomingSessionId = null
+  const newUpcoming = state.sessions.find(s => s.status === 'upcoming')
+  state.upcomingSessionId = newUpcoming?.id ?? null
   state.startedAt = Date.now()
 
   startRaceTimer(io, state)
@@ -87,22 +95,23 @@ function startRace(io: Server, state: RaceState) {
 // =========================
 // MODE CONTROL
 // =========================
-function setRaceMode(io: Server, state: RaceState, mode: string) {
-  if (!['safe', 'hazard', 'danger', 'finish'].includes(mode)) return
-
-  if (state.mode === 'finish' && mode !== 'finish') return
-
+function setRaceMode(io: Server, socket: Socket, state: RaceState, mode: string) {
+  if (!['safe', 'hazard', 'danger', 'finish'].includes(mode)) {
+    socket.emit('operation:error', 'Invalid race mode')
+    return
+  }
+  if (state.mode === 'finish' && mode !== 'finish') {
+    socket.emit('operation:error', 'Finish is final, cannot change race mode')
+    return
+  }
   state.mode = mode as RaceState['mode']
-
   if (mode === 'finish') {
     state.status = 'finished'
-
     if (raceInterval) {
       clearInterval(raceInterval)
       raceInterval = null
     }
   }
-
   io.emit('race:mode', state.mode)
   broadcastState(io, state)
   savePersistedState(state)
@@ -124,8 +133,9 @@ function endSession(io: Server, state: RaceState) {
   state.status = 'idle'
   state.mode = 'danger'
 
-  // 🔥 MVP REQUIREMENT: remove finished sessions
-  state.sessions = state.sessions.filter(s => s.status !== 'finished')
+  // 🔥 MVP REQUIREMENT: do not remove finished sessions
+  const nextUpcoming = state.sessions.find(s => s.status === 'upcoming')
+  state.upcomingSessionId = nextUpcoming?.id ?? null
 
   if (raceInterval) {
     clearInterval(raceInterval)
@@ -144,34 +154,38 @@ export function registerSessionHandlers(
   socket: Socket,
   raceState: RaceState
 ) {
-    // =====================
-    // DRIVER ADD
-    // =====================
-    socket.on('driver:add', ({ sessionId, name }: { sessionId: string, name: string }) => {
-      if (!isAuthorized()) {
-        socket.emit('operation:error', 'Unauthorized')
-        return
-      }
-      const session = raceState.sessions.find((s: any) => s.id === sessionId)
-      if (!session) {
-        socket.emit('operation:error', 'Session not found')
-        return
-      }
-      const newDriver = {
-        id: crypto.randomUUID(),
-        name: name.trim(),
-        carNumber: session.drivers.length + 1,
-      }
-      session.drivers.push(newDriver)
-      broadcastState(io, raceState)
-      savePersistedState(raceState)
-    })
+
   function isAuthorized() {
     return (
       socket.data.role === 'receptionist' ||
       socket.data.role === 'safety'
     )
   }
+
+  // =====================
+  // DRIVER ADD
+  // =====================
+  socket.on('driver:add', ({ sessionId, name }: { sessionId: string, name: string }) => {
+    if (!isAuthorized()) {
+      socket.emit('operation:error', 'Unauthorized')
+      return
+    }
+    if (raceState.status === 'running') {
+      socket.emit('operation:error', 'Cannot modify drivers or sessions while race is running')
+      return
+    }
+    try {
+      addDriver(raceState, sessionId, name)
+      broadcastState(io, raceState)
+      savePersistedState(raceState)
+    } catch (err) {
+      if (err instanceof AppError) {
+        socket.emit('operation:error', err.message)
+      } else {
+        socket.emit('operation:error', 'Unknown error')
+      }
+    }
+  })
 
   // =====================
   // SESSION CREATE
@@ -181,22 +195,21 @@ export function registerSessionHandlers(
       socket.emit('operation:error', 'Unauthorized')
       return
     }
-
-    const newSession: RaceSession = {
-      id: crypto.randomUUID(),
-      label: label?.trim() || `Session ${raceState.sessions.length + 1}`,
-      drivers: [],
-      status: 'upcoming',
+    if (raceState.status === 'running') {
+      socket.emit('operation:error', 'Cannot modify drivers or sessions while race is running')
+      return
     }
-
-    raceState.sessions.push(newSession)
-
-    if (!raceState.upcomingSessionId) {
-      raceState.upcomingSessionId = newSession.id
+    try {
+      createSession(raceState, label)
+      broadcastState(io, raceState)
+      savePersistedState(raceState)
+    } catch (err) {
+      if (err instanceof AppError) {
+        socket.emit('operation:error', err.message)
+      } else {
+        socket.emit('operation:error', 'Unknown error')
+      }
     }
-
-    broadcastState(io, raceState)
-    savePersistedState(raceState)
   })
 
   // =====================
@@ -207,32 +220,27 @@ export function registerSessionHandlers(
       socket.emit('operation:error', 'Unauthorized')
       return
     }
-
-    const index = raceState.sessions.findIndex(s => s.id === sessionId)
-
-    if (index === -1) {
-      socket.emit('operation:error', 'Session not found')
+    if (raceState.status === 'running') {
+      socket.emit('operation:error', 'Cannot modify drivers or sessions while race is running')
       return
     }
-
-    raceState.sessions.splice(index, 1)
-
-    if (raceState.activeSessionId === sessionId) {
-      raceState.activeSessionId = null
+    try {
+      deleteSession(raceState, sessionId)
+      broadcastState(io, raceState)
+      savePersistedState(raceState)
+    } catch (err) {
+      if (err instanceof AppError) {
+        socket.emit('operation:error', err.message)
+      } else {
+        socket.emit('operation:error', 'Unknown error')
+      }
     }
-
-    if (raceState.upcomingSessionId === sessionId) {
-      raceState.upcomingSessionId = null
-    }
-
-    broadcastState(io, raceState)
-    savePersistedState(raceState)
   })
 
   // =====================
   // LAP TRACKING
   // =====================
-  socket.on('lap:record', (carNumber: number) => {
+  socket.on('lap-recorded', (carNumber: number) => {
     if (!isAuthorized()) {
       socket.emit('operation:error', 'Unauthorized')
       return
@@ -251,12 +259,15 @@ export function registerSessionHandlers(
   // =====================
   socket.on('race:start', () => {
     if (!isAuthorized()) return
-    startRace(io, raceState)
+    const started = startRace(io, raceState)
+    if (started === false) {
+      socket.emit('operation:error', 'Race is already running')
+    }
   })
 
   socket.on('race-mode-change', (mode: string) => {
     if (!isAuthorized()) return
-    setRaceMode(io, raceState, mode)
+    setRaceMode(io, socket, raceState, mode)
   })
 
   socket.on('race:end_session', () => {
@@ -269,5 +280,91 @@ export function registerSessionHandlers(
   // =====================
   socket.on('state:get', (cb) => {
     cb(raceState)
+  })
+
+  // =====================
+  // DRIVER EDIT
+  // =====================
+  socket.on('driver:edit', ({ sessionId, driverId, name }: { sessionId: string; driverId: string; name: string }) => {
+    if (!isAuthorized()) {
+      socket.emit('operation:error', 'Unauthorized')
+      return
+    }
+    if (raceState.status === 'running') {
+      socket.emit('operation:error', 'Cannot modify drivers or sessions while race is running')
+      return
+    }
+    try {
+      editDriver(raceState, sessionId, driverId, name)
+      broadcastState(io, raceState)
+      savePersistedState(raceState)
+    } catch (err) {
+      if (err instanceof AppError) {
+        socket.emit('operation:error', err.message)
+      } else {
+        socket.emit('operation:error', 'Unknown error')
+      }
+    }
+  })
+
+  // =====================
+  // DRIVER REMOVE
+  // =====================
+  socket.on('driver:remove', ({ sessionId, driverId }: { sessionId: string; driverId: string }) => {
+    if (!isAuthorized()) {
+      socket.emit('operation:error', 'Unauthorized')
+      return
+    }
+    if (raceState.status === 'running') {
+      socket.emit('operation:error', 'Cannot modify drivers or sessions while race is running')
+      return
+    }
+    try {
+      removeDriver(raceState, sessionId, driverId)
+      broadcastState(io, raceState)
+      savePersistedState(raceState)
+    } catch (err) {
+      if (err instanceof AppError) {
+        socket.emit('operation:error', err.message)
+      } else {
+        socket.emit('operation:error', 'Unknown error')
+      }
+    }
+  })
+
+  // =====================
+  // DRIVER ASSIGN CAR
+  // =====================
+  socket.on('driver:assign_car', ({ sessionId, driverId, carNumber }: { sessionId: string; driverId: string; carNumber: number }) => {
+    if (!isAuthorized()) {
+      socket.emit('operation:error', 'Unauthorized')
+      return
+    }
+    if (raceState.status === 'running') {
+      socket.emit('operation:error', 'Cannot modify drivers or sessions while race is running')
+      return
+    }
+    const session = raceState.sessions.find(s => s.id === sessionId)
+    if (session?.status !== 'upcoming') {
+      socket.emit('operation:error', 'Session not found or not editable')
+      return
+    }
+    if (carNumber < 1 || carNumber > 8) {
+      socket.emit('operation:error', 'Car number must be between 1 and 8')
+      return
+    }
+    const driver = session.drivers.find(d => d.id === driverId)
+    if (!driver) {
+      socket.emit('operation:error', 'Driver not found')
+      return
+    }
+    // Swap car numbers if car is taken
+    const otherDriver = session.drivers.find(d => d.carNumber === carNumber && d.id !== driverId)
+    if (otherDriver) {
+      otherDriver.carNumber = driver.carNumber
+    }
+    driver.carNumber = carNumber
+    broadcastState(io, raceState)
+    savePersistedState(raceState)
   })
 }
