@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useToast } from '@/lib/toast'
 import type { RaceState } from '@shared/race'
 import type { RaceSession } from '@shared/session'
-import { appSocket } from '@/lib/socket'
+import { publicSocket } from '@/lib/socket'
 import { getCarColor } from '@/lib/carColors'
 
 // Helper: get upcoming session
@@ -28,23 +28,23 @@ export function NextRacePanel() {
     const onStateUpdated = (state: RaceState) => {
       setRaceState(state)
     }
-    appSocket.on('state:updated', onStateUpdated)
-    appSocket.emit('state:get', (state) => {
+    publicSocket.on('state:updated', onStateUpdated)
+    publicSocket.emit('state:get', (state) => {
       setRaceState(state)
     })
     const fetchState = () => {
-      appSocket.emit('state:get', (currentState: RaceState) => setRaceState(currentState))
+      publicSocket.emit('state:get', (currentState: RaceState) => setRaceState(currentState))
     }
     const onFullscreenChange = () => setIsFullscreen(Boolean(document.fullscreenElement))
-    appSocket.on('connect', fetchState)
+    publicSocket.on('connect', fetchState)
     document.addEventListener('fullscreenchange', onFullscreenChange)
-    if (appSocket.connected) fetchState()
+    if (publicSocket.connected) fetchState()
     const onDisconnect = () => showToast('Connection lost. Trying to reconnect…', 'error');
-    appSocket.on('disconnect', onDisconnect);
+    publicSocket.on('disconnect', onDisconnect);
     return () => {
-      appSocket.off('state:updated', onStateUpdated)
-      appSocket.off('connect', fetchState)
-      appSocket.off('disconnect', onDisconnect)
+      publicSocket.off('state:updated', onStateUpdated)
+      publicSocket.off('connect', fetchState)
+      publicSocket.off('disconnect', onDisconnect)
       document.removeEventListener('fullscreenchange', onFullscreenChange)
     }
   }, [showToast])

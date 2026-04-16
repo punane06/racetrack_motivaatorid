@@ -22,11 +22,11 @@ export interface ClientToServerEvents {
   'race-finished': () => void
   'race:end_session': () => void
   'lap-recorded': (carNumber: number) => void
-  'session:create': (label: string) => void
-  'session:delete': (sessionId: string) => void
-  'driver:add': (payload: { sessionId: string; name: string }) => void
-  'driver:edit': (payload: { sessionId: string; driverId: string; name: string }) => void
-  'driver:remove': (payload: { sessionId: string; driverId: string }) => void
+  'session:create': (label: string, cb?: (sessions: RaceSession[]) => void) => void
+  'session:delete': (sessionId: string, cb?: (sessions: RaceSession[]) => void) => void
+  'driver:add': (payload: { sessionId: string; name: string }, cb?: (sessions: RaceSession[]) => void) => void
+  'driver:edit': (payload: { sessionId: string; driverId: string; name: string }, cb?: (sessions: RaceSession[]) => void) => void
+  'driver:remove': (payload: { sessionId: string; driverId: string }, cb?: (sessions: RaceSession[]) => void) => void
 }
 
 export interface ServerToClientEvents {

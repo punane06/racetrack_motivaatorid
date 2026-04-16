@@ -4,8 +4,8 @@ import { useToast } from '@/lib/toast'
 
 
 import type { RaceState } from '@shared/race'
-import type { RaceSession } from '@shared/session'
-import { appSocket } from '@/lib/socket'
+import type { RaceSession } from '@shared/dist/session'
+import { employeeSocket } from '@/lib/socket'
 import { SessionList } from './SessionList'
 
 export function FrontDeskPanel() {
@@ -23,25 +23,25 @@ export function FrontDeskPanel() {
     }
 
     const fetchState = () => {
-      appSocket.emit('state:get', (state: RaceState) => {
+      employeeSocket.emit('state:get', (state: RaceState) => {
         setSessions(state.sessions)
       })
     }
 
-    appSocket.on('connect', fetchState)
-    appSocket.on('sessions:updated', onSessionsUpdated)
-    appSocket.on('state:updated', (state: RaceState) => setSessions(state.sessions))
-    appSocket.on('operation:error', onOperationError)
+    employeeSocket.on('connect', fetchState)
+    employeeSocket.on('sessions:updated', onSessionsUpdated)
+    employeeSocket.on('state:updated', (state: RaceState) => setSessions(state.sessions))
+    employeeSocket.on('operation:error', onOperationError)
 
-    if (appSocket.connected) {
+    if (employeeSocket.connected) {
       fetchState()
     }
 
     return () => {
-      appSocket.off('connect', fetchState)
-      appSocket.off('sessions:updated', onSessionsUpdated)
-      appSocket.off('state:updated', (state: RaceState) => setSessions(state.sessions))
-      appSocket.off('operation:error', onOperationError)
+      employeeSocket.off('connect', fetchState)
+      employeeSocket.off('sessions:updated', onSessionsUpdated)
+      employeeSocket.off('state:updated', (state: RaceState) => setSessions(state.sessions))
+      employeeSocket.off('operation:error', onOperationError)
     }
   }, [])
 
@@ -52,24 +52,34 @@ export function FrontDeskPanel() {
       return
     }
 
-    appSocket.emit('session:create', normalized)
+      employeeSocket.emit('session:create', normalized, (updatedSessions: RaceSession[]) => {
+        setSessions(updatedSessions)
+      })
     setLabel('')
   }
 
   const deleteSession = (sessionId: string) => {
-    appSocket.emit('session:delete', sessionId)
+     employeeSocket.emit('session:delete', sessionId, (updatedSessions: RaceSession[]) => {
+      setSessions(updatedSessions)
+     })
   }
 
   const addDriver = (sessionId: string, name: string) => {
-    appSocket.emit('driver:add', { sessionId, name })
+     employeeSocket.emit('driver:add', { sessionId, name }, (updatedSessions: RaceSession[]) => {
+      setSessions(updatedSessions)
+     })
   }
 
   const editDriver = (sessionId: string, driverId: string, name: string) => {
-    appSocket.emit('driver:edit', { sessionId, driverId, name })
+     employeeSocket.emit('driver:edit', { sessionId, driverId, name }, (updatedSessions: RaceSession[]) => {
+      setSessions(updatedSessions)
+     })
   }
 
   const removeDriver = (sessionId: string, driverId: string) => {
-    appSocket.emit('driver:remove', { sessionId, driverId })
+     employeeSocket.emit('driver:remove', { sessionId, driverId }, (updatedSessions: RaceSession[]) => {
+      setSessions(updatedSessions)
+     })
   }
 
 

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { savePersistedState, loadPersistedState } from './persist.js';
-import type { RaceState } from '@shared/race.js';
+import type { RaceState } from 'shared/race.js';
 
 function makeState(timeRemainingSeconds: number, startedAt: number): RaceState {
   return {

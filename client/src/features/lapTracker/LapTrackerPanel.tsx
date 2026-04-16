@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useToast } from '@/lib/toast';
-import { appSocket } from '@/lib/socket';
+import { employeeSocket } from '@/lib/socket';
 import type { RaceState } from '@shared/race';
 
 function getActiveSession(raceState: RaceState | null) {
@@ -14,7 +14,7 @@ export function LapTrackerPanel() {
 
   // Fetch initial state
   useEffect(() => {
-    appSocket.emit('state:get', (state: RaceState) => {
+    employeeSocket.emit('state:get', (state: RaceState) => {
       setRaceState(state);
     });
   }, []);
@@ -24,11 +24,11 @@ export function LapTrackerPanel() {
     const onState = (state: RaceState) => setRaceState(state);
     // Use a stable handler for race:tick
     const onRaceTick = () => {};
-    appSocket.on('state:updated', onState);
-    appSocket.on('race:tick', onRaceTick); // just to trigger rerender if needed in future
+    employeeSocket.on('state:updated', onState);
+    employeeSocket.on('race:tick', onRaceTick); // just to trigger rerender if needed in future
     return () => {
-      appSocket.off('state:updated', onState);
-      appSocket.off('race:tick', onRaceTick);
+      employeeSocket.off('state:updated', onState);
+      employeeSocket.off('race:tick', onRaceTick);
     };
   }, []);
 
@@ -63,16 +63,16 @@ export function LapTrackerPanel() {
     const onOperationError = (msg: string) => {
       showToast(msg, 'error');
     };
-    appSocket.on('lap-recorded', onLapRecorded);
-    appSocket.on('operation:error', onOperationError);
+    employeeSocket.on('lap-recorded', onLapRecorded);
+    employeeSocket.on('operation:error', onOperationError);
     return () => {
-      appSocket.off('lap-recorded', onLapRecorded);
-      appSocket.off('operation:error', onOperationError);
+      employeeSocket.off('lap-recorded', onLapRecorded);
+      employeeSocket.off('operation:error', onOperationError);
     };
   }, [showToast]);
 
   const handleLap = useCallback((carNumber: number) => {
-    appSocket.emit('lap-recorded', carNumber);
+    employeeSocket.emit('lap-recorded', carNumber);
   }, []);
 
   let content = null;
@@ -80,7 +80,7 @@ export function LapTrackerPanel() {
     content = <p role="status" aria-live="polite">Loading…</p>;
   } else if (status !== 'running' && status !== 'finished') {
     content = <p className="muted" role="status" aria-live="polite">Waiting for race to start</p>;
-  } else if (status === 'running' && activeSession) {
+  } else if ((status === 'running' || (status === 'finished' && raceState?.mode === 'finish')) && activeSession) {
     content = (
       <div
         style={{

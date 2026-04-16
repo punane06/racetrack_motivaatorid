@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { RaceMode, RaceState } from '@shared/race'
-import { appSocket } from '@/lib/socket'
+import { publicSocket } from '@/lib/socket'
 
 // Main color palette as fallback
 const modeColor: Record<string, string> = {
@@ -43,22 +43,22 @@ export function RaceFlagsPanel() {
       setRaceState(state)
       setMode(state.mode)
     }
-    appSocket.on('state:updated', onStateUpdated)
-    appSocket.emit('state:get', (state) => {
+    publicSocket.on('state:updated', onStateUpdated)
+    publicSocket.emit('state:get', (state) => {
       setRaceState(state)
       setMode(state.mode)
     })
     // From PR: fullscreen
     const fetchState = () => {
-      appSocket.emit('state:get', (state: RaceState) => setMode(state.mode))
+      publicSocket.emit('state:get', (state: RaceState) => setMode(state.mode))
     }
     const onFullscreenChange = () => setIsFullscreen(Boolean(document.fullscreenElement))
-    appSocket.on('connect', fetchState)
+    publicSocket.on('connect', fetchState)
     document.addEventListener('fullscreenchange', onFullscreenChange)
-    if (appSocket.connected) fetchState()
+    if (publicSocket.connected) fetchState()
     return () => {
-      appSocket.off('state:updated', onStateUpdated)
-      appSocket.off('connect', fetchState)
+      publicSocket.off('state:updated', onStateUpdated)
+      publicSocket.off('connect', fetchState)
       document.removeEventListener('fullscreenchange', onFullscreenChange)
     }
   }, [])

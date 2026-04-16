@@ -1,5 +1,5 @@
 import type { Server, Socket } from 'socket.io'
-import type { RaceState } from '@shared/race.js'
+import type { RaceState } from 'shared/race.js'
 
 import { recordLap } from '../../services/lapService.js'
 import { getLeaderboard } from '../../services/leaderboardService.js'
@@ -25,6 +25,7 @@ function emitLeaderboard(io: Server, state: RaceState) {
 
 function broadcastState(io: Server, state: RaceState) {
   io.emit('state:updated', state)
+  io.emit('sessions:updated', state.sessions)
 }
 
 // =========================
@@ -165,7 +166,7 @@ export function registerSessionHandlers(
   // =====================
   // DRIVER ADD
   // =====================
-  socket.on('driver:add', ({ sessionId, name }: { sessionId: string, name: string }) => {
+  socket.on('driver:add', ({ sessionId, name }: { sessionId: string, name: string }, cb) => {
     if (!isAuthorized()) {
       socket.emit('operation:error', 'Unauthorized')
       return
@@ -178,6 +179,7 @@ export function registerSessionHandlers(
       addDriver(raceState, sessionId, name)
       broadcastState(io, raceState)
       savePersistedState(raceState)
+        if (cb) cb(raceState.sessions)
     } catch (err) {
       if (err instanceof AppError) {
         socket.emit('operation:error', err.message)
@@ -190,7 +192,7 @@ export function registerSessionHandlers(
   // =====================
   // SESSION CREATE
   // =====================
-  socket.on('session:create', (label?: string) => {
+  socket.on('session:create', (label?: string, cb?: (sessions: any) => void) => {
     if (!isAuthorized()) {
       socket.emit('operation:error', 'Unauthorized')
       return
@@ -203,6 +205,7 @@ export function registerSessionHandlers(
       createSession(raceState, label)
       broadcastState(io, raceState)
       savePersistedState(raceState)
+        if (cb) cb(raceState.sessions)
     } catch (err) {
       if (err instanceof AppError) {
         socket.emit('operation:error', err.message)
@@ -215,7 +218,7 @@ export function registerSessionHandlers(
   // =====================
   // SESSION DELETE (FIXED)
   // =====================
-  socket.on('session:delete', (sessionId: string) => {
+  socket.on('session:delete', (sessionId: string, cb?: (sessions: any) => void) => {
     if (!isAuthorized()) {
       socket.emit('operation:error', 'Unauthorized')
       return
@@ -228,6 +231,7 @@ export function registerSessionHandlers(
       deleteSession(raceState, sessionId)
       broadcastState(io, raceState)
       savePersistedState(raceState)
+        if (cb) cb(raceState.sessions)
     } catch (err) {
       if (err instanceof AppError) {
         socket.emit('operation:error', err.message)
@@ -285,7 +289,7 @@ export function registerSessionHandlers(
   // =====================
   // DRIVER EDIT
   // =====================
-  socket.on('driver:edit', ({ sessionId, driverId, name }: { sessionId: string; driverId: string; name: string }) => {
+  socket.on('driver:edit', ({ sessionId, driverId, name }: { sessionId: string; driverId: string; name: string }, cb) => {
     if (!isAuthorized()) {
       socket.emit('operation:error', 'Unauthorized')
       return
@@ -298,6 +302,7 @@ export function registerSessionHandlers(
       editDriver(raceState, sessionId, driverId, name)
       broadcastState(io, raceState)
       savePersistedState(raceState)
+        if (cb) cb(raceState.sessions)
     } catch (err) {
       if (err instanceof AppError) {
         socket.emit('operation:error', err.message)
@@ -310,7 +315,7 @@ export function registerSessionHandlers(
   // =====================
   // DRIVER REMOVE
   // =====================
-  socket.on('driver:remove', ({ sessionId, driverId }: { sessionId: string; driverId: string }) => {
+  socket.on('driver:remove', ({ sessionId, driverId }: { sessionId: string; driverId: string }, cb) => {
     if (!isAuthorized()) {
       socket.emit('operation:error', 'Unauthorized')
       return
@@ -323,6 +328,7 @@ export function registerSessionHandlers(
       removeDriver(raceState, sessionId, driverId)
       broadcastState(io, raceState)
       savePersistedState(raceState)
+        if (cb) cb(raceState.sessions)
     } catch (err) {
       if (err instanceof AppError) {
         socket.emit('operation:error', err.message)

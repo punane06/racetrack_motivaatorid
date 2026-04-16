@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { addDriver, editDriver, removeDriver, assignCarToDriver, deleteSession } from './sessionService.js';
-import type { RaceState } from '@shared/race.js';
+import type { RaceState } from 'shared/race.js';
 
 function makeState(sessionStatus: 'upcoming' | 'active' | 'finished' = 'upcoming') {
   return {

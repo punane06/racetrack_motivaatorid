@@ -96,10 +96,15 @@ describe('E2E Race Flow & Auth', () => {
     });
     await new Promise<void>((resolve) => client.on('connect', resolve));
     let sessions: any[] = [];
-    client.on('sessions:updated', (s: any[]) => { sessions = s; });
+    const nextSessions = new Promise<any[]>((resolve) => {
+      client.once('sessions:updated', (s: any[]) => {
+        sessions = s;
+        resolve(s);
+      });
+    });
     // Start race
     client.emit('race:start');
-    await new Promise<void>((r) => setTimeout(r, 100));
+    await nextSessions;
     // There should be no session with status 'upcoming'
     expect(sessions.some(s => s.status === 'upcoming')).toBe(false);
     // The session should now be 'active'
