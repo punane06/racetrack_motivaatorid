@@ -1,3 +1,20 @@
+import type { Socket } from 'socket.io'
+
+// Socket.IO middleware for connection-level auth
+export function socketAuthMiddleware(accessKeys: AccessKeys) {
+  return async (socket: Socket, next: (err?: Error) => void) => {
+    const { role, key } = socket.handshake.auth || {}
+    if (!role || !key) {
+      return next(new Error('Missing role or key'))
+    }
+    const ok = await validateAccess(role, key, accessKeys)
+    if (!ok) {
+      return next(new Error('Invalid access key'))
+    }
+    socket.data.role = role
+    next()
+  }
+}
 import type { EmployeeRole } from '@shared/constants.js'
 
 interface AccessKeys {

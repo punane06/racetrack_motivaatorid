@@ -12,7 +12,7 @@ import { Server } from 'socket.io'
 import { EMPLOYEE_ROUTES, PUBLIC_ROUTES } from '@shared/constants.js'
 import type { ClientToServerEvents, ServerToClientEvents } from '@shared/events.js'
 
-import { buildAccessKeys, validateAccess } from './socket/auth.js'
+import { buildAccessKeys, socketAuthMiddleware } from './socket/auth.js'
 import { registerSessionHandlers, startRaceTimer } from './socket/handlers/sessionHandlers.js'
 
 import { createInitialState } from './state/store.js'
@@ -148,29 +148,15 @@ const accessKeys = buildAccessKeys(
 )
 
 // =========================
-// 9. CONNECTION
+// 9. AUTH MIDDLEWARE & CONNECTION
 // =========================
-io.on('connection', (socket) => {
+io.use(socketAuthMiddleware(accessKeys))
 
+io.on('connection', (socket) => {
   // 🔥 anna state kohe frontendile
   socket.on('state:get', (cb) => {
     cb(raceState)
   })
-
-  // 🔐 AUTH
-  socket.on('auth:check', async ({ role, key }, cb) => {
-    const ok = await validateAccess(role, key, accessKeys)
-
-    if (ok) {
-      socket.data.role = role
-    }
-
-    cb({
-      ok,
-      message: ok ? undefined : 'Invalid access key'
-    })
-  })
-
   // 🔥 REGISTER HANDLERS
   registerSessionHandlers(io, socket, raceState)
 })
