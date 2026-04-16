@@ -1,6 +1,5 @@
 import type { Server, Socket } from 'socket.io'
 import type { RaceState } from '@shared/race.js'
-import type { RaceSession } from '@shared/session.js'
 
 import { recordLap } from '../../services/lapService.js'
 import { getLeaderboard } from '../../services/leaderboardService.js'
@@ -65,7 +64,7 @@ export function startRaceTimer(io: Server, state: RaceState) {
 // START RACE
 // =========================
 function startRace(io: Server, state: RaceState) {
-  if (state.status === 'running') return
+  if (state.status === 'running') return false
 
   const nextSession = state.sessions.find(s => s.status === 'upcoming')
 
@@ -155,36 +154,38 @@ export function registerSessionHandlers(
   socket: Socket,
   raceState: RaceState
 ) {
-    // =====================
-    // DRIVER ADD
-    // =====================
-    socket.on('driver:add', ({ sessionId, name }: { sessionId: string, name: string }) => {
-      if (!isAuthorized()) {
-        socket.emit('operation:error', 'Unauthorized')
-        return
-      }
-      if (raceState.status === 'running') {
-        socket.emit('operation:error', 'Cannot modify drivers or sessions while race is running')
-        return
-      }
-      try {
-        addDriver(raceState, sessionId, name)
-        broadcastState(io, raceState)
-        savePersistedState(raceState)
-      } catch (err) {
-        if (err instanceof AppError) {
-          socket.emit('operation:error', err.message)
-        } else {
-          socket.emit('operation:error', 'Unknown error')
-        }
-      }
-    })
+
   function isAuthorized() {
     return (
       socket.data.role === 'receptionist' ||
       socket.data.role === 'safety'
     )
   }
+
+  // =====================
+  // DRIVER ADD
+  // =====================
+  socket.on('driver:add', ({ sessionId, name }: { sessionId: string, name: string }) => {
+    if (!isAuthorized()) {
+      socket.emit('operation:error', 'Unauthorized')
+      return
+    }
+    if (raceState.status === 'running') {
+      socket.emit('operation:error', 'Cannot modify drivers or sessions while race is running')
+      return
+    }
+    try {
+      addDriver(raceState, sessionId, name)
+      broadcastState(io, raceState)
+      savePersistedState(raceState)
+    } catch (err) {
+      if (err instanceof AppError) {
+        socket.emit('operation:error', err.message)
+      } else {
+        socket.emit('operation:error', 'Unknown error')
+      }
+    }
+  })
 
   // =====================
   // SESSION CREATE
@@ -258,7 +259,10 @@ export function registerSessionHandlers(
   // =====================
   socket.on('race:start', () => {
     if (!isAuthorized()) return
-    startRace(io, raceState)
+    const started = startRace(io, raceState)
+    if (started === false) {
+      socket.emit('operation:error', 'Race is already running')
+    }
   })
 
   socket.on('race-mode-change', (mode: string) => {

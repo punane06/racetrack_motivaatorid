@@ -50,9 +50,15 @@ export function LapTrackerPanel() {
   }, []);
 
   useEffect(() => {
-    // Show toast on successful lap recording
-    const onLapRecorded = (carNumber: number) => {
-      showToast(`Lap recorded for car ${carNumber}`, 'success');
+    // Show toast on successful lap recording (handle array)
+    const onLapRecorded = (lapData: any[]) => {
+      if (Array.isArray(lapData)) {
+        lapData.forEach(lap => {
+          if (lap && typeof lap.carNumber === 'number') {
+            showToast(`Lap recorded for car ${lap.carNumber}`, 'success');
+          }
+        });
+      }
     };
     const onOperationError = (msg: string) => {
       showToast(msg, 'error');

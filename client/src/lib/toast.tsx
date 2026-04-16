@@ -44,8 +44,13 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       {children}
       <div className="toast-container">
         {toasts.map((toast) => (
-          <div key={toast.id} className={`toast toast-${toast.type}`}
-               style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div
+            key={toast.id}
+            className={`toast toast-${toast.type}`}
+            style={{ display: 'flex', alignItems: 'center', gap: 8 }}
+            aria-live={toast.type === 'error' ? 'assertive' : 'polite'}
+            role="status"
+          >
             <span>{toast.message}</span>
             <button
               aria-label="Close notification"
