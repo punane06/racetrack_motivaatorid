@@ -80,34 +80,33 @@ export function FrontDeskPanel() {
     <section className="panel">
       <div className="front-desk-header">
         <h2>Front Desk</h2>
-        <p className="muted">Create sessions and manage drivers with automatic car assignment.</p>
+        <p className="muted">Create sessions and manage drivers.</p>
       </div>
 
       <form className="session-create-form" onSubmit={createSession}>
         <input
           type="text"
           value={label}
-          onChange={(event) => setLabel(event.target.value)}
+          onChange={(e) => setLabel(e.target.value)}
           placeholder="Session name (e.g. Session 1)"
           aria-label="Session name"
         />
         <button type="submit">Add Session</button>
       </form>
 
-      {upcomingSessions.length > 0 ? (
-        <>
-          <h3>Upcoming Sessions</h3>
-          <SessionList
-            sessions={upcomingSessions}
-            onDelete={deleteSession}
-            onAddDriver={addDriver}
-            onEditDriver={editDriver}
-            onRemoveDriver={removeDriver}
-          />
-        </>
+      {upcomingSessions.length === 0 ? (
+        <p className="muted">No upcoming sessions. Add a new session above.</p>
       ) : (
-        <p className="muted">No upcoming sessions. Add a new session to get started.</p>
+        <SessionList
+          sessions={upcomingSessions}
+          onDelete={deleteSession}
+          onAddDriver={addDriver}
+          onEditDriver={editDriver}
+          onRemoveDriver={removeDriver}
+        />
       )}
+      
+      {/* Lõpetatud sessioone EI kuvata vastavalt nõudele */}
     </section>
-  );
+  )
 }
