@@ -144,6 +144,28 @@ export function registerSessionHandlers(
   socket: Socket,
   raceState: RaceState
 ) {
+    // =====================
+    // DRIVER ADD
+    // =====================
+    socket.on('driver:add', ({ sessionId, name }: { sessionId: string, name: string }) => {
+      if (!isAuthorized()) {
+        socket.emit('operation:error', 'Unauthorized')
+        return
+      }
+      const session = raceState.sessions.find((s: any) => s.id === sessionId)
+      if (!session) {
+        socket.emit('operation:error', 'Session not found')
+        return
+      }
+      const newDriver = {
+        id: crypto.randomUUID(),
+        name: name.trim(),
+        carNumber: session.drivers.length + 1,
+      }
+      session.drivers.push(newDriver)
+      broadcastState(io, raceState)
+      savePersistedState(raceState)
+    })
   function isAuthorized() {
     return (
       socket.data.role === 'receptionist' ||

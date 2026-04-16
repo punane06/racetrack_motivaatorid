@@ -1,5 +1,4 @@
 import type { RaceState } from '@shared/race.js'
-import type { LapData } from '@shared/lap.js'
 
 export function recordLap(state: RaceState, carNumber: number) {
     if (state.status !== 'running' && state.mode !== 'finish') return null
