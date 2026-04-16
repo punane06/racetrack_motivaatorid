@@ -7,7 +7,9 @@ import App from './App.tsx'
 import { ToastProvider } from './lib/toast'
 import { ConfirmProvider } from './lib/confirm'
 
-createRoot(document.getElementById('root')!).render(
+const rootEl = document.getElementById('root');
+if (!rootEl) throw new Error('Root element not found');
+createRoot(rootEl).render(
   <StrictMode>
     <BrowserRouter>
       <ToastProvider>
