@@ -49,6 +49,10 @@ export function createSession(state: RaceState, label?: string): RaceSession {
   // [SERVICE] Creating session "${finalLabel}" (dev only)
 
   const session: RaceSession = {
+    /**
+     * Generate a cryptographically strong random UUID (RFC 4122 v4).
+     * @type {string}
+     */
     id: crypto.randomUUID(),
     label: finalLabel,
     drivers: [],
@@ -129,6 +133,10 @@ export function addDriver(state: RaceState, sessionId: string, name: string): Dr
   }
 
   const driver: Driver = {
+    /**
+     * Generate a cryptographically strong random UUID (RFC 4122 v4).
+     * @type {string}
+     */
     id: crypto.randomUUID(),
     name: normalizedName,
     carNumber,
