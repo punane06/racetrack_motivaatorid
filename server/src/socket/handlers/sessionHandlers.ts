@@ -255,8 +255,7 @@ export function registerSessionHandlers(
       socket.emit('operation:error', 'Session not found')
       return
     }
-    const session = raceState.sessions[index]
-    if (session.status !== 'upcoming') {
+    if (raceState.sessions[index].status !== 'upcoming') {
       socket.emit('operation:error', 'Can only delete upcoming sessions')
       return
     }
