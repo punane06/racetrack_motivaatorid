@@ -30,6 +30,7 @@ export function FrontDeskPanel() {
 
     appSocket.on('connect', fetchState)
     appSocket.on('sessions:updated', onSessionsUpdated)
+    appSocket.on('state:updated', (state: RaceState) => setSessions(state.sessions))
     appSocket.on('operation:error', onOperationError)
 
     if (appSocket.connected) {
@@ -39,6 +40,7 @@ export function FrontDeskPanel() {
     return () => {
       appSocket.off('connect', fetchState)
       appSocket.off('sessions:updated', onSessionsUpdated)
+      appSocket.off('state:updated', (state: RaceState) => setSessions(state.sessions))
       appSocket.off('operation:error', onOperationError)
     }
   }, [])
