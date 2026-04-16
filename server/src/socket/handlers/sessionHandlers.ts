@@ -88,22 +88,23 @@ function startRace(io: Server, state: RaceState) {
 // =========================
 // MODE CONTROL
 // =========================
-function setRaceMode(io: Server, state: RaceState, mode: string) {
-  if (!['safe', 'hazard', 'danger', 'finish'].includes(mode)) return
-
-  if (state.mode === 'finish' && mode !== 'finish') return
-
+function setRaceMode(io: Server, socket: Socket, state: RaceState, mode: string) {
+  if (!['safe', 'hazard', 'danger', 'finish'].includes(mode)) {
+    socket.emit('operation:error', 'Invalid race mode')
+    return
+  }
+  if (state.mode === 'finish' && mode !== 'finish') {
+    socket.emit('operation:error', 'Finish is final, cannot change race mode')
+    return
+  }
   state.mode = mode as RaceState['mode']
-
   if (mode === 'finish') {
     state.status = 'finished'
-
     if (raceInterval) {
       clearInterval(raceInterval)
       raceInterval = null
     }
   }
-
   io.emit('race:mode', state.mode)
   broadcastState(io, state)
   savePersistedState(state)
@@ -295,7 +296,7 @@ export function registerSessionHandlers(
 
   socket.on('race-mode-change', (mode: string) => {
     if (!isAuthorized()) return
-    setRaceMode(io, raceState, mode)
+    setRaceMode(io, socket, raceState, mode)
   })
 
   socket.on('race:end_session', () => {
