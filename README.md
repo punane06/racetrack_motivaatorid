@@ -83,6 +83,21 @@ Racetrack_Motivaatorid/
 
 # 3. Environment Variables
 
+
+## Client-server connection (multi-device support)
+
+To allow connecting from other devices (phone, tablet, etc), set the client environment variable:
+
+```
+VITE_SERVER_URL=http://your-server-ip:3000
+```
+
+If not set, the client will auto-detect the server based on the browser's hostname.
+
+See [.env.example](./client/.env.example) for usage. Copy it to `client/.env` and fill in your own values if needed.
+
+---
+
 The server will not start unless all required access keys are provided.
 
 See [.env.example](./.env.example) for all required and optional variables. Copy it to `.env` and fill in your own values.
