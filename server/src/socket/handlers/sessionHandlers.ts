@@ -74,7 +74,8 @@ function startRace(io: Server, state: RaceState) {
   state.activeSessionId = nextSession.id
   nextSession.status = 'active'
 
-  state.upcomingSessionId = null
+  const newUpcoming = state.sessions.find(s => s.status === 'upcoming')
+  state.upcomingSessionId = newUpcoming?.id ?? null
   state.startedAt = Date.now()
 
   startRaceTimer(io, state)
@@ -124,8 +125,9 @@ function endSession(io: Server, state: RaceState) {
   state.status = 'idle'
   state.mode = 'danger'
 
-  // 🔥 MVP REQUIREMENT: remove finished sessions
-  state.sessions = state.sessions.filter(s => s.status !== 'finished')
+  // 🔥 MVP REQUIREMENT: do not remove finished sessions
+  const nextUpcoming = state.sessions.find(s => s.status === 'upcoming')
+  state.upcomingSessionId = nextUpcoming?.id ?? null
 
   if (raceInterval) {
     clearInterval(raceInterval)
@@ -213,6 +215,10 @@ export function registerSessionHandlers(
       socket.emit('operation:error', 'Unauthorized')
       return
     }
+    if (raceState.status === 'running') {
+      socket.emit('operation:error', 'Cannot modify drivers or sessions while race is running')
+      return
+    }
 
     const newSession: RaceSession = {
       id: crypto.randomUUID(),
@@ -239,24 +245,25 @@ export function registerSessionHandlers(
       socket.emit('operation:error', 'Unauthorized')
       return
     }
-
+    if (raceState.status === 'running') {
+      socket.emit('operation:error', 'Cannot modify drivers or sessions while race is running')
+      return
+    }
     const index = raceState.sessions.findIndex(s => s.id === sessionId)
-
     if (index === -1) {
       socket.emit('operation:error', 'Session not found')
       return
     }
-
+    const session = raceState.sessions[index]
+    if (session.status !== 'upcoming') {
+      socket.emit('operation:error', 'Can only delete upcoming sessions')
+      return
+    }
     raceState.sessions.splice(index, 1)
-
-    if (raceState.activeSessionId === sessionId) {
-      raceState.activeSessionId = null
-    }
-
     if (raceState.upcomingSessionId === sessionId) {
-      raceState.upcomingSessionId = null
+      const next = raceState.sessions.find(s => s.status === 'upcoming')
+      raceState.upcomingSessionId = next?.id ?? null
     }
-
     broadcastState(io, raceState)
     savePersistedState(raceState)
   })
