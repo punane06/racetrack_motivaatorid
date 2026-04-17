@@ -1,3 +1,10 @@
+  // Helper to format time as mm:ss
+  function formatTime(seconds: number | undefined) {
+    if (typeof seconds !== 'number' || Number.isNaN(seconds)) return '--:--';
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}:${s.toString().padStart(2, '0')}`;
+  }
 import { useEffect, useState, useCallback } from 'react';
 import { useToast } from '@/lib/toast';
 import { employeeSocket } from '@/lib/socket';
@@ -83,39 +90,46 @@ export function LapTrackerPanel() {
     content = <p className="muted" role="status" aria-live="polite">Waiting for race to start</p>;
   } else if ((status === 'running' || (status === 'finished' && raceState?.mode === 'finish')) && activeSession) {
     content = (
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: `repeat(${columns}, 1fr)`,
-          gap: '1.5rem',
-          marginTop: '2rem',
-        }}
-      >
-        {activeSession.drivers.map(driver => (
-          <button
-            key={driver.id}
-            style={{
-              minHeight: '22vh',
-              fontSize: '2.2rem',
-              fontWeight: 700,
-              borderRadius: 16,
-              border: '2px solid #d4dbe5',
-              background: '#f7fafc',
-              cursor: 'pointer',
-              boxShadow: '0 2px 8px rgba(16,24,40,0.07)',
-              transition: 'background 0.2s',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              userSelect: 'none',
-            }}
-            onClick={() => handleLap(driver.carNumber)}
-            aria-label={`Record lap for car ${driver.carNumber}`}
-          >
-            <span className="sr-only">Record lap for car </span>{driver.carNumber}
-          </button>
-        ))}
-      </div>
+      <>
+        <div style={{ textAlign: 'center', marginBottom: 12 }}>
+          <span style={{ fontSize: '1.5rem', fontWeight: 600 }} aria-label="Time remaining">
+            Time left: {formatTime(raceState?.timeRemainingSeconds)}
+          </span>
+        </div>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: `repeat(${columns}, 1fr)`,
+            gap: '1.5rem',
+            marginTop: '2rem',
+          }}
+        >
+          {activeSession.drivers.map(driver => (
+            <button
+              key={driver.id}
+              style={{
+                minHeight: '22vh',
+                fontSize: '2.2rem',
+                fontWeight: 700,
+                borderRadius: 16,
+                border: '2px solid #d4dbe5',
+                background: '#f7fafc',
+                cursor: 'pointer',
+                boxShadow: '0 2px 8px rgba(16,24,40,0.07)',
+                transition: 'background 0.2s',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                userSelect: 'none',
+              }}
+              onClick={() => handleLap(driver.carNumber)}
+              aria-label={`Record lap for car ${driver.carNumber}`}
+            >
+              <span className="sr-only">Record lap for car </span>{driver.carNumber}
+            </button>
+          ))}
+        </div>
+      </>
     );
   } else if (status === 'finished' && activeSession) {
     content = (
