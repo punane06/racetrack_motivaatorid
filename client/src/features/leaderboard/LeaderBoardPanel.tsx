@@ -155,7 +155,7 @@ export function LeaderBoardPanel() {
           </button>
         </header>
         <div className="leaderboard-meta" aria-describedby="leaderboard-heading">
-          <span><span className="sr-only">Race mode:</span> {modeLabel(state.mode)}</span>
+          <span className="leaderboard-mode-label"><span className="sr-only">Race mode:</span> {modeLabel(state.mode)}</span>
           <span className="leaderboard-mode-flag">{modeFlag(state.mode)}</span>
           <span><span className="sr-only">Time remaining:</span> {formatTime(state.timeRemainingSeconds)}</span>
           <span><span className="sr-only">Session:</span> {displaySession?.label ?? 'No session'}</span>
