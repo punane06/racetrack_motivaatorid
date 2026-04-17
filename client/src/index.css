@@ -1,3 +1,9 @@
+/* Hide race-flags-header in fullscreen mode */
+@media (display-mode: fullscreen) {
+  .race-flags-header {
+    display: none !important;
+  }
+}
 /* Confirm dialog styles */
 .confirm-backdrop {
   position: fixed;
