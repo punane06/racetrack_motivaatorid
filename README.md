@@ -2,7 +2,7 @@
 # Racetrack Info Screens
 
 Team: **Motivaatorid**  
-//kood 2025-2026 team project
+//kood 2026 team project
 
 ## Project Goal
 Deliver a robust racetrack MVP:

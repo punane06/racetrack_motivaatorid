@@ -1,3 +1,9 @@
+.leaderboard-meta > span:nth-child(2) > span {
+  margin-left: -0.1em !important;
+  margin-right: 0.5em !important;
+  padding-left: 0 !important;
+  padding-right: 16px !important;
+}
 /* Navigation menu styles */
 .nav-menu {
   display: flex;
@@ -352,6 +358,16 @@ button.danger {
   gap: 1rem;
   margin: 0.75rem 0 1rem;
   font-weight: 600;
+  justify-content: flex-start;
+  align-items: center;
+  text-align: left;
+}
+
+.leaderboard-meta > span:first-child,
+.leaderboard-meta > span:nth-child(2) {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25em;
 }
 
 .leaderboard-table,
