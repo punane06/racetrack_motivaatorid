@@ -1,3 +1,19 @@
+.driver-name {
+  min-width: 120px;
+  max-width: 100%;
+  flex: 1 1 120px;
+  text-align: left;
+  font-size: 1.1rem;
+  font-weight: 500;
+  padding: 0.4rem 0.5rem;
+  background: #f8fafc;
+  border-radius: 6px;
+  border: 1px solid #d7dfed;
+  transition: background 0.2s;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 /* Hide race-flags-header in fullscreen mode */
 @media (display-mode: fullscreen) {
   .race-flags-header {
@@ -258,8 +274,10 @@ h2 {
 }
 
 .driver-main {
-  display: grid;
-  gap: 0.2rem;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .driver-actions {
