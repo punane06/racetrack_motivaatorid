@@ -170,8 +170,6 @@ export function LapTrackerPanel() {
         <p className="muted" style={{ marginTop: 24 }} role="status" aria-live="polite">Race finished</p>
       </>
     );
-  } else if (raceState?.status === 'idle' && !raceState?.activeSessionId) {
-    content = <p className="muted" role="status" aria-live="polite">Session ended</p>;
   }
 
   return (
