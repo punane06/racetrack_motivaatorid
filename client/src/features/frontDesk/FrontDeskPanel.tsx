@@ -116,7 +116,7 @@ export function FrontDeskPanel() {
         />
       )}
       
-      {/* Lõpetatud sessioone EI kuvata vastavalt nõudele */}
+      {/* Finished sessions are NOT displayed as required */}
     </section>
   )
 }
