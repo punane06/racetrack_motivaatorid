@@ -1,7 +1,7 @@
 import type { RaceState } from 'shared/race.js'
 
 export function recordLap(state: RaceState, carNumber: number) {
-    if (state.status !== 'running' && state.mode !== 'finish') return null
+    if (state.status !== 'running') return null
 
     const now = Date.now()
 

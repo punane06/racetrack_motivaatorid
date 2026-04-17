@@ -9,7 +9,8 @@ import {
   deleteSession,
   addDriver,
   editDriver,
-  removeDriver
+  removeDriver,
+  assignCarToDriver
 } from '../../services/sessionService.js'
 import { AppError } from '../../errors/AppError.js'
 
@@ -21,11 +22,16 @@ let raceInterval: NodeJS.Timeout | null = null
 function emitLeaderboard(io: Server, state: RaceState) {
   const leaderboard = getLeaderboard(state)
   io.emit('leaderboard:update', leaderboard)
+  // The employee namespace does not use leaderboard:update, only public clients do.
 }
 
 function broadcastState(io: Server, state: RaceState) {
+  // Public interfaces (leaderboard, next-race, race-flags, race-countdown)
   io.emit('state:updated', state)
   io.emit('sessions:updated', state.sessions)
+  // Employee interfaces (race-control, front-desk, lap-line-tracker)
+  io.of('/employee').emit('state:updated', state)
+  io.of('/employee').emit('sessions:updated', state.sessions)
 }
 
 // =========================
@@ -39,6 +45,8 @@ export function startRaceTimer(io: Server, state: RaceState) {
       state.timeRemainingSeconds -= 1
 
       io.emit('race:tick', state.timeRemainingSeconds)
+      io.of('/employee').emit('race:tick', state.timeRemainingSeconds)
+      io.of('/employee').emit('state:updated', state)
       broadcastState(io, state)
       emitLeaderboard(io, state)
     }
@@ -53,6 +61,7 @@ export function startRaceTimer(io: Server, state: RaceState) {
       state.mode = 'finish'
 
       io.emit('race-finished', state)
+      io.of('/employee').emit('race-finished', state)
 
       broadcastState(io, state)
       emitLeaderboard(io, state)
@@ -74,10 +83,15 @@ function startRace(io: Server, state: RaceState) {
     return
   }
 
-  state.status = 'running'
-  state.mode = 'safe'
-  state.timeRemainingSeconds = state.raceDurationSeconds ?? 60
-  state.lapData = []
+
+  // Ensure duration is always valid (default 60s, min 10s)
+  if (!state.raceDurationSeconds || state.raceDurationSeconds < 10) {
+    state.raceDurationSeconds = 60;
+  }
+  state.status = 'running';
+  state.mode = 'safe';
+  state.timeRemainingSeconds = state.raceDurationSeconds;
+  state.lapData = [];
 
   state.activeSessionId = nextSession.id
   nextSession.status = 'active'
@@ -114,6 +128,7 @@ function setRaceMode(io: Server, socket: Socket, state: RaceState, mode: string)
     }
   }
   io.emit('race:mode', state.mode)
+  io.of('/employee').emit('race:mode', state.mode)
   broadcastState(io, state)
   savePersistedState(state)
 }
@@ -134,7 +149,7 @@ function endSession(io: Server, state: RaceState) {
   state.status = 'idle'
   state.mode = 'danger'
 
-  // 🔥 MVP REQUIREMENT: do not remove finished sessions
+  // MVP REQUIREMENT: do not remove finished sessions
   const nextUpcoming = state.sessions.find(s => s.status === 'upcoming')
   state.upcomingSessionId = nextUpcoming?.id ?? null
 
@@ -157,10 +172,11 @@ export function registerSessionHandlers(
 ) {
 
   function isAuthorized() {
-    return (
-      socket.data.role === 'receptionist' ||
-      socket.data.role === 'safety'
-    )
+      return (
+        socket.data.role === 'receptionist' ||
+        socket.data.role === 'safety' ||
+        socket.data.role === 'observer'
+      )
   }
 
   // =====================
@@ -350,27 +366,16 @@ export function registerSessionHandlers(
       socket.emit('operation:error', 'Cannot modify drivers or sessions while race is running')
       return
     }
-    const session = raceState.sessions.find(s => s.id === sessionId)
-    if (session?.status !== 'upcoming') {
-      socket.emit('operation:error', 'Session not found or not editable')
-      return
+    try {
+      assignCarToDriver(raceState, sessionId, driverId, carNumber)
+      broadcastState(io, raceState)
+      savePersistedState(raceState)
+    } catch (err) {
+      if (err instanceof AppError) {
+        socket.emit('operation:error', err.message)
+      } else {
+        socket.emit('operation:error', 'Unknown error')
+      }
     }
-    if (carNumber < 1 || carNumber > 8) {
-      socket.emit('operation:error', 'Car number must be between 1 and 8')
-      return
-    }
-    const driver = session.drivers.find(d => d.id === driverId)
-    if (!driver) {
-      socket.emit('operation:error', 'Driver not found')
-      return
-    }
-    // Swap car numbers if car is taken
-    const otherDriver = session.drivers.find(d => d.carNumber === carNumber && d.id !== driverId)
-    if (otherDriver) {
-      otherDriver.carNumber = driver.carNumber
-    }
-    driver.carNumber = carNumber
-    broadcastState(io, raceState)
-    savePersistedState(raceState)
   })
 }

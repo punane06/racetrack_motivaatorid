@@ -28,3 +28,4 @@ client/.vite/
 
 # runtime state (local only)
 server/src/state/state.json
+racetrack-info.agent.md

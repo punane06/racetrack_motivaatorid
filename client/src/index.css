@@ -1,3 +1,48 @@
+/* Navigation menu styles */
+.nav-menu {
+  display: flex;
+  gap: 0.6rem;
+  padding: 0.15rem 0 0.25rem 0;
+  justify-content: center;
+  background: #f7fafc;
+  border-bottom: 1px solid #e2e8f0;
+  margin-bottom: 0.25rem;
+}
+.nav-link {
+  color: #1e293b;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1.08rem;
+  padding: 0.3rem 0.8rem;
+  border-radius: 6px;
+  transition: background 0.15s, color 0.15s;
+}
+.nav-link.active, .nav-link:hover {
+  background: #2563eb;
+  color: #fff;
+}
+.driver-name {
+  min-width: 120px;
+  max-width: 100%;
+  flex: 1 1 120px;
+  text-align: left;
+  font-size: 1.1rem;
+  font-weight: 500;
+  padding: 0.4rem 0.5rem;
+  background: #f8fafc;
+  border-radius: 6px;
+  border: 1px solid #d7dfed;
+  transition: background 0.2s;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* Hide race-flags-header in fullscreen mode */
+@media (display-mode: fullscreen) {
+  .race-flags-header {
+    display: none !important;
+  }
+}
 /* Confirm dialog styles */
 .confirm-backdrop {
   position: fixed;
@@ -252,8 +297,10 @@ h2 {
 }
 
 .driver-main {
-  display: grid;
-  gap: 0.2rem;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .driver-actions {
