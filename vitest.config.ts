@@ -9,17 +9,22 @@ export default defineConfig({
     },
   },
   test: {
-    include: [
-      'client/src/**/*.test.{ts,tsx}',
-      'server/src/**/*.test.ts',
-    ],
-    exclude: [
-      '**/node_modules/**',
-      '**/dist/**',
-    ],
-    environment: 'jsdom',
-    setupFiles: [
-      'client/setupTests.ts',
+    projects: [
+      {
+        // Client tests
+        test: {
+          include: ['client/src/**/*.test.{ts,tsx}'],
+          environment: 'jsdom',
+          setupFiles: ['client/setupTests.ts'],
+        },
+      },
+      {
+        // Server tests
+        test: {
+          include: ['server/src/**/*.test.ts'],
+          environment: 'node',
+        },
+      },
     ],
   },
 })
