@@ -9,7 +9,8 @@ import {
   deleteSession,
   addDriver,
   editDriver,
-  removeDriver
+  removeDriver,
+  assignCarToDriver
 } from '../../services/sessionService.js'
 import { AppError } from '../../errors/AppError.js'
 
@@ -359,27 +360,16 @@ export function registerSessionHandlers(
       socket.emit('operation:error', 'Cannot modify drivers or sessions while race is running')
       return
     }
-    const session = raceState.sessions.find(s => s.id === sessionId)
-    if (session?.status !== 'upcoming') {
-      socket.emit('operation:error', 'Session not found or not editable')
-      return
+    try {
+      assignCarToDriver(raceState, sessionId, driverId, carNumber)
+      broadcastState(io, raceState)
+      savePersistedState(raceState)
+    } catch (err) {
+      if (err instanceof AppError) {
+        socket.emit('operation:error', err.message)
+      } else {
+        socket.emit('operation:error', 'Unknown error')
+      }
     }
-    if (carNumber < 1 || carNumber > 8) {
-      socket.emit('operation:error', 'Car number must be between 1 and 8')
-      return
-    }
-    const driver = session.drivers.find(d => d.id === driverId)
-    if (!driver) {
-      socket.emit('operation:error', 'Driver not found')
-      return
-    }
-    // Swap car numbers if the car is already taken
-    const otherDriver = session.drivers.find(d => d.carNumber === carNumber && d.id !== driverId)
-    if (otherDriver) {
-      otherDriver.carNumber = driver.carNumber
-    }
-    driver.carNumber = carNumber
-    broadcastState(io, raceState)
-    savePersistedState(raceState)
   })
 }
