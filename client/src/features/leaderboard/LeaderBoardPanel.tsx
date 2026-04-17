@@ -166,6 +166,7 @@ export function LeaderBoardPanel() {
           <table className="leaderboard-table" aria-labelledby="leaderboard-heading">
             <thead>
               <tr>
+                <th scope="col">Pos</th>
                 <th scope="col">Car</th>
                 <th scope="col">Driver</th>
                 <th scope="col">Current Lap</th>
@@ -173,8 +174,9 @@ export function LeaderBoardPanel() {
               </tr>
             </thead>
             <tbody>
-              {rows.map((row) => (
+              {rows.map((row, idx) => (
                 <tr key={row.carNumber}>
+                  <td>{idx + 1}</td>
                   <td>
                     <span
                       className="car-badge"
