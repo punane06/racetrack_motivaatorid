@@ -174,8 +174,22 @@ employeeNsp.on('connection', (socket) => {
 // =========================
 // 10. START SERVER
 // =========================
+
 httpServer.listen(env.port, '0.0.0.0', () => {
   console.log(`Server running on http://0.0.0.0:${env.port}`)
+})
+
+// Graceful shutdown handlers
+process.on('SIGTERM', () => {
+  console.log('[SERVER] SIGTERM received, saving state and shutting down...')
+  savePersistedState(raceState)
+  httpServer.close(() => process.exit(0))
+})
+
+process.on('SIGINT', () => {
+  console.log('[SERVER] SIGINT received, saving state and shutting down...')
+  savePersistedState(raceState)
+  httpServer.close(() => process.exit(0))
 })
 
 // =========================
