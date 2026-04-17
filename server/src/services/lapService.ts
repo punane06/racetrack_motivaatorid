@@ -1,7 +1,10 @@
 import type { RaceState } from 'shared/race.js'
 
 export function recordLap(state: RaceState, carNumber: number) {
-    if (state.status !== 'running') return null
+    const isRecordable =
+        state.status === 'running' ||
+        (state.status === 'finished' && state.mode === 'finish');
+    if (!isRecordable) return null
 
     const now = Date.now()
 
