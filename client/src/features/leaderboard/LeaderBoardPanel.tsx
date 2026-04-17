@@ -1,8 +1,23 @@
-import { useEffect, useState, useMemo } from 'react'
+import React, { useEffect, useState, useMemo } from 'react'
 import { useToast } from '@/lib/toast'
 import { useRaceState } from '@/hooks/useRaceState'
 import { publicSocket } from '@/lib/socket'
 import type { RaceSession } from '@shared/session'
+// Flag icon for each race mode
+function modeFlag(mode: RaceMode): React.ReactElement {
+  switch (mode) {
+    case 'safe':
+      return <span title="Green flag" aria-label="Green flag" style={{fontSize: '1.5em'}}>🟩</span>;
+    case 'hazard':
+      return <span title="Yellow flag" aria-label="Yellow flag" style={{fontSize: '1.5em'}}>🟨</span>;
+    case 'danger':
+      return <span title="Red flag" aria-label="Red flag" style={{fontSize: '1.5em'}}>🟥</span>;
+    case 'finish':
+      return <span title="Chequered flag" aria-label="Chequered flag" style={{fontSize: '1.5em'}}>🏁</span>;
+    default:
+      return <span style={{fontSize: '1.5em'}}>🏁</span>;
+  }
+}
 import type { LapData } from '@shared/lap'
 import type { RaceMode, RaceState } from '@shared/race'
 import { getCarColor } from '@/lib/carColors'
@@ -141,6 +156,7 @@ export function LeaderBoardPanel() {
         </header>
         <div className="leaderboard-meta" aria-describedby="leaderboard-heading">
           <span><span className="sr-only">Race mode:</span> {modeLabel(state.mode)}</span>
+          <span>{modeFlag(state.mode)}</span>
           <span><span className="sr-only">Time remaining:</span> {formatTime(state.timeRemainingSeconds)}</span>
           <span><span className="sr-only">Session:</span> {displaySession?.label ?? 'No session'}</span>
         </div>
@@ -150,15 +166,17 @@ export function LeaderBoardPanel() {
           <table className="leaderboard-table" aria-labelledby="leaderboard-heading">
             <thead>
               <tr>
-                <th scope="col">#</th>
+                <th scope="col">Pos</th>
+                <th scope="col">Car</th>
                 <th scope="col">Driver</th>
                 <th scope="col">Current Lap</th>
                 <th scope="col">Fastest Lap</th>
               </tr>
             </thead>
             <tbody>
-              {rows.map((row) => (
+              {rows.map((row, idx) => (
                 <tr key={row.carNumber}>
+                  <td>{idx + 1}</td>
                   <td>
                     <span
                       className="car-badge"

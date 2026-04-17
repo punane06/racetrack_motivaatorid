@@ -28,29 +28,44 @@ export function SessionCard({
   return (
     <article className="session-card">
       <header className="session-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div>
-          <h3>{session.label}</h3>
-          <p className="muted">
-            {session.drivers.length} driver{session.drivers.length === 1 ? '' : 's'}
-          </p>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span
-            style={{
-              display: 'inline-block',
-              padding: '0.2em 0.7em',
-              borderRadius: 12,
-              fontSize: '0.95em',
-              fontWeight: 600,
-              background: STATUS_BADGE[session.status].color,
-              color: '#fff',
-              textTransform: 'capitalize',
-            }}
-          >
-            {STATUS_BADGE[session.status].label}
-          </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, justifyContent: 'space-between', minHeight: 40, maxWidth: '100%', width: '100%', marginBottom: 20 }}>
+          {session.status === 'upcoming' ? (
+            <span
+              style={{
+                color: '#2563eb',
+                fontWeight: 700,
+                fontSize: '1.13em',
+                minHeight: 40,
+                display: 'flex',
+                alignItems: 'center',
+                marginRight: 8,
+                background: 'none',
+                border: 'none',
+                padding: 0,
+                textTransform: 'capitalize',
+              }}
+            >
+              upcoming
+            </span>
+          ) : (
+            <span
+              style={{
+                display: 'inline-block',
+                padding: '0.2em 0.7em',
+                borderRadius: 12,
+                fontSize: '0.93em',
+                fontWeight: 500,
+                background: STATUS_BADGE[session.status].color,
+                color: '#fff',
+                textTransform: 'capitalize',
+                boxShadow: 'none',
+              }}
+            >
+              {STATUS_BADGE[session.status].label}
+            </span>
+          )}
           {isUpcoming && (
-            <button type="button" className="danger" onClick={() => onDelete(session.id)}>
+            <button type="button" className="danger" style={{minHeight: 40}} onClick={() => onDelete(session.id)}>
               Delete Session
             </button>
           )}
