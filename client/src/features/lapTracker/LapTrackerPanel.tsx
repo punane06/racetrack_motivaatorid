@@ -12,21 +12,22 @@ export function LapTrackerPanel() {
   const { showToast } = useToast();
 
 
-  // Fetch initial state
-  useEffect(() => {
-    employeeSocket.emit('state:get', (state: RaceState) => {
-      setRaceState(state);
-    });
-  }, []);
 
-  // Listen for updates
+  // Unified effect: fetch initial state, listen for connect and state updates
   useEffect(() => {
+    const fetchState = () => {
+      employeeSocket.emit('state:get', (state: RaceState) => {
+        setRaceState(state);
+      });
+    };
     const onState = (state: RaceState) => setRaceState(state);
-    // Use a stable handler for race:tick
     const onRaceTick = () => {};
+    employeeSocket.on('connect', fetchState);
     employeeSocket.on('state:updated', onState);
-    employeeSocket.on('race:tick', onRaceTick); // just to trigger rerender if needed in future
+    employeeSocket.on('race:tick', onRaceTick);
+    if (employeeSocket.connected) fetchState();
     return () => {
+      employeeSocket.off('connect', fetchState);
       employeeSocket.off('state:updated', onState);
       employeeSocket.off('race:tick', onRaceTick);
     };
