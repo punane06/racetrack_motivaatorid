@@ -204,14 +204,32 @@ The client is served from the built `dist` folder.
 
 
 
+
+
 # 8. Testing
 
 ## Automated tests
-- Server: Vitest covers session logic, persistence, and business rules.
-- Client: Minimal automated tests (see client/setupTests.ts).
+
+**How to run all tests:**
+
+**Client tests:**
+Run these commands from the project root:
+```
+cd client
+npx vitest run
+```
+
+**Server tests:**
+Run these commands from the project root:
+```
+cd server
+npx vitest run
+```
+
+> Always run tests from the correct working directory (client or server). If you run tests from the wrong folder, Vitest will not find the test files and tests will not work.
 
 ## Manual testing
-- **TODO:** Manual testimine tuleb teha pärast viimast muudatust! Kõik UI vood, rollipõhine ligipääs, edge case'id (reconnect, state resume, finish mode) tuleb käsitsi üle kontrollida.
+- **TODO:** Manual testing must be performed after the last code changes! All UI flows, role-based access, and edge cases (reconnect, state resume, finish mode) must be checked manually.
 
 ---
 
