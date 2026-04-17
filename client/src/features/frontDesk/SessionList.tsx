@@ -16,7 +16,7 @@ export function SessionList({
   onAddDriver,
   onEditDriver,
   onRemoveDriver,
-}: SessionListProps) {
+}: Readonly<SessionListProps>) {
   if (sessions.length === 0) {
     return <p className="muted">No sessions yet. Create your first session.</p>
   }
