@@ -86,7 +86,9 @@ export function LapTrackerPanel() {
   let content = null;
   if (!raceState) {
     content = <p role="status" aria-live="polite">Loading…</p>;
-  } else if (status !== 'running' && status !== 'finished') {
+  } else if (raceState.status === 'idle' && raceState.lastFinishedSessionId !== null) {
+    content = <p className="muted" role="status" aria-live="polite">Race session ended</p>;
+  } else if (raceState.status === 'idle') {
     content = <p className="muted" role="status" aria-live="polite">Waiting for race to start</p>;
   } else if ((status === 'running' || (status === 'finished' && raceState?.mode === 'finish')) && activeSession) {
     content = (
