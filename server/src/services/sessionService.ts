@@ -26,7 +26,7 @@ export function createSession(state: RaceState, label?: string): RaceSession {
 
   state.sessions.push(session)
 
-  // määrame upcoming ainult siis kui puudub
+  // Set upcoming session only if not already set
   if (!state.upcomingSessionId) {
     // [SERVICE] Setting upcomingSessionId → ${session.id} (dev only)
     state.upcomingSessionId = session.id
