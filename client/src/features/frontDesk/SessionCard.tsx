@@ -28,7 +28,13 @@ export function SessionCard({
   return (
     <article className="session-card">
       <header className="session-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16, justifyContent: 'space-between', minHeight: 40, maxWidth: '100%', width: '100%', marginBottom: 20 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', flex: 1 }}>
+          <h3 style={{ margin: 0, fontSize: '1.18em', fontWeight: 700 }}>{session.label}</h3>
+          <span className="muted" style={{ fontSize: '0.97em', marginTop: 2 }}>
+            {session.drivers.length} driver{session.drivers.length === 1 ? '' : 's'}
+          </span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, minHeight: 40 }}>
           {session.status === 'upcoming' ? (
             <span
               style={{
