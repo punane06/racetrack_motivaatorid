@@ -144,7 +144,7 @@ export function LeaderBoardPanel() {
     )
   }
 
-  // PR-ist: kui state olemas, näita detailset tabelit
+  // From PR: if state exists, show detailed table
   if (state) {
     return (
       <section className="panel leaderboard-panel">

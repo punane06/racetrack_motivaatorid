@@ -33,7 +33,7 @@ Racetrack_Motivaatorid/
 │   │   └── config/   # Env config
 │   └── ...
 ├── shared/           # Shared types and event contracts
-├── screenshots/      # Screenshots/GIFs for README (TODO: add images)
+├── screenshots/      # Screenshots/GIFs for README (see section below)
 ├── .env.example      # Example environment variables
 ├── README.md         # This file
 └── USER_GUIDE.md     # Detailed user guide
@@ -63,6 +63,28 @@ Racetrack_Motivaatorid/
 - Kadi Kerner (Team Lead)
 
 ---
+
+
+# Screenshots
+
+
+| Interface         | Screenshot Filename                  | Caption                        |
+|-------------------|-------------------------------------|--------------------------------|
+| Front Desk        | screenshots/front-desk.png           | Front Desk: Manage sessions    |
+| Race Control      | screenshots/race-control.png         | Race Control: Start & control race |
+| Lap-line Tracker  | screenshots/lap-line-tracker.png     | Lap-line Tracker: Record laps  |
+| Leader Board      | screenshots/leader-board.png         | Leader Board: Live standings   |
+| Next Race         | screenshots/next-race.png            | Next Race: Upcoming session    |
+| Race Flags        | screenshots/race-flags.png           | Race Flags: Current flag color |
+
+<!-- Example screenshot links (uncomment after adding images)
+![Front Desk](screenshots/front-desk.png)
+![Race Control](screenshots/race-control.png)
+![Lap-line Tracker](screenshots/lap-line-tracker.png)
+![Leader Board](screenshots/leader-board.png)
+![Next Race](screenshots/next-race.png)
+![Race Flags](screenshots/race-flags.png)
+-->
 
 # 1. Tech Stack
 
@@ -233,35 +255,55 @@ npx vitest run
 
 ---
 
+
 ## RaceState fields
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `mode` | `"danger" \| "safe"` | Current track safety mode. Controls flag screens. |
-| `activeSessionId` | `string \| null` | ID of the session currently running. |
-| `upcomingSessionId` | `string \| null` | ID of the next scheduled session. |
-| `sessions` | `Session[]` | List of all created sessions. |
-| `timeRemainingSeconds` | `number` | Countdown timer for the active session. |
-| `startedAt` | `number \| null` | Timestamp when the current session started. |
+| Field                  | Type                                   | Description |
+|------------------------|----------------------------------------|-------------|
+| `status`               | `"idle" \| "running" \| "finished"`   | Current race status: idle (waiting), running, or finished. |
+| `mode`                 | `"safe" \| "hazard" \| "danger" \| "finish"` | Current track mode: Safe, Hazard, Danger, or Finish. Controls flag screens. |
+| `activeSessionId`      | `string \| null`                       | ID of the session currently running, or null if none. |
+| `upcomingSessionId`    | `string \| null`                       | ID of the next scheduled session, or null if none. |
+| `sessions`             | `Session[]`                            | List of all created sessions. |
+| `timeRemainingSeconds` | `number`                               | Countdown timer (in seconds) for the active session. |
+| `raceDurationSeconds`  | `number`                               | Total race duration (in seconds) for the current session. |
+| `startedAt`            | `number \| null`                       | Timestamp (ms since epoch) when the current session started, or null if not started. |
+| `lapData`              | `LapData[]`                            | Array of lap records for all drivers in the current session. |
+| `lastFinishedSessionId`| `string \| null`                       | ID of the most recently finished session, or null if none. |
 
 ---
+
 
 ## Session structure
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `id` | `string` | Unique session identifier. |
-| `label` | `string` | Human-readable session name. |
+| Field     | Type     | Description |
+|-----------|----------|-------------|
+| `id`      | `string` | Unique session identifier. |
+| `label`   | `string` | Human-readable session name. |
 | `drivers` | `Driver[]` | List of drivers assigned to this session. |
+| `status`  | `'upcoming' \| 'active' \| 'finished'` | Current session status. |
 
 ---
 
+
 ## Driver structure
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `id` | `string` | Unique driver identifier. |
-| `name` | `string` | Driver’s display name. |
+| Field        | Type     | Description |
+|--------------|----------|-------------|
+| `id`         | `string` | Unique driver identifier. |
+| `name`       | `string` | Driver’s display name. |
+| `carNumber`  | `number` | Car number assigned to the driver. |
+
+---
+
+## LapData structure
+
+| Field           | Type                | Description |
+|-----------------|---------------------|-------------|
+| `carNumber`     | `number`            | Car number for this lap record. |
+| `currentLap`    | `number`            | Current lap number for this car. |
+| `fastestLapMs`  | `number \| null`    | Fastest lap time in milliseconds, or null if not set. |
+| `lastCrossedAt` | `number \| null`    | Timestamp (ms since epoch) when the car last crossed the line, or null if never. |
 
 ---
 
@@ -283,24 +325,43 @@ npx vitest run
 
 # 10. Socket.IO Events
 
+
 ## Client → Server events
 
-| Event | Payload | Description |
-|-------|---------|-------------|
-| `driver:add` | `{ sessionId, name }` | Adds a new driver to a session. |
-| `driver:edit` | `{ sessionId, driverId, name }` | Edits an existing driver. |
-| `driver:remove` | `{ sessionId, driverId }` | Removes a driver from a session. |
-| `session:create` | `label: string` | Creates a new session. |
-| `session:delete` | `sessionId: string` | Deletes a session. |
+| Event                | Payload / Args                                         | Description |
+|----------------------|-------------------------------------------------------|-------------|
+| `auth:check`         | `{ role, key }`, callback                             | Check access key for a role. Callback returns `{ ok, message? }`. |
+| `state:get`          | callback                                              | Request the full RaceState. Callback returns `RaceState`. |
+| `race:start`         | —                                                     | Start the race. |
+| `race-mode-change`   | `mode: RaceMode`                                      | Change the current race mode (flag color). |
+| `race-finished`      | —                                                     | Mark the race as finished. |
+| `race:end_session`   | —                                                     | End the current session. |
+| `lap-recorded`       | `carNumber: number`                                   | Record a lap for the given car number. |
+| `driver:assign_car`  | `{ sessionId, driverId, carNumber }`                  | Assign a car number to a driver. |
+| `session:create`     | `label: string`, callback?                            | Create a new session. Optional callback returns updated sessions. |
+| `session:delete`     | `sessionId: string`, callback?                        | Delete a session. Optional callback returns updated sessions. |
+| `driver:add`         | `{ sessionId, name }`, callback?                      | Add a new driver to a session. Optional callback returns updated sessions. |
+| `driver:edit`        | `{ sessionId, driverId, name }`, callback?            | Edit an existing driver. Optional callback returns updated sessions. |
+| `driver:remove`      | `{ sessionId, driverId }`, callback?                  | Remove a driver from a session. Optional callback returns updated sessions. |
+
 
 ---
 
+
 ## Server → Client events
 
-| Event | Payload | Description |
-|-------|---------|-------------|
-| `sessions:updated` | `Session[]` | Broadcasts updated session list. |
-| `operation:error` | `string` | Sends an error message to the client. |
+| Event                | Payload / Args                | Description |
+|----------------------|-------------------------------|-------------|
+| `state:updated`      | `RaceState`                   | Broadcasts the full updated race state. |
+| `lap-recorded`       | `LapData[]`                   | Broadcasts updated lap data for all cars. |
+| `race:tick`          | `timeRemainingSeconds: number`| Sends the current countdown timer. |
+| `race:mode`          | `mode: RaceMode`              | Sends the current race mode (flag color). |
+| `race-finished`      | `RaceState`                   | Notifies that the race has finished. |
+| `next-session-updated`| `RaceState`                  | Notifies about the next session update. |
+| `sessions:updated`   | `RaceSession[]`               | Broadcasts updated session list. |
+| `leaderboard:update` | `unknown`                     | Sends updated leaderboard data. |
+| `auth:required`      | —                             | Notifies that authentication is required. |
+| `operation:error`    | `string`                      | Sends an error message to the client. |
 
 ---
 
