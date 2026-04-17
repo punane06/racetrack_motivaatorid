@@ -1,3 +1,26 @@
+/* Navigation menu styles */
+.nav-menu {
+  display: flex;
+  gap: 0.6rem;
+  padding: 0.15rem 0 0.25rem 0;
+  justify-content: center;
+  background: #f7fafc;
+  border-bottom: 1px solid #e2e8f0;
+  margin-bottom: 0.25rem;
+}
+.nav-link {
+  color: #1e293b;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1.08rem;
+  padding: 0.3rem 0.8rem;
+  border-radius: 6px;
+  transition: background 0.15s, color 0.15s;
+}
+.nav-link.active, .nav-link:hover {
+  background: #2563eb;
+  color: #fff;
+}
 .driver-name {
   min-width: 120px;
   max-width: 100%;

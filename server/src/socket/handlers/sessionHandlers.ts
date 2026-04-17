@@ -83,10 +83,15 @@ function startRace(io: Server, state: RaceState) {
     return
   }
 
-  state.status = 'running'
-  state.mode = 'safe'
-  state.timeRemainingSeconds = state.raceDurationSeconds ?? 60
-  state.lapData = []
+
+  // Ensure duration is always valid (default 60s, min 10s)
+  if (!state.raceDurationSeconds || state.raceDurationSeconds < 10) {
+    state.raceDurationSeconds = 60;
+  }
+  state.status = 'running';
+  state.mode = 'safe';
+  state.timeRemainingSeconds = state.raceDurationSeconds;
+  state.lapData = [];
 
   state.activeSessionId = nextSession.id
   nextSession.status = 'active'
@@ -167,10 +172,11 @@ export function registerSessionHandlers(
 ) {
 
   function isAuthorized() {
-    return (
-      socket.data.role === 'receptionist' ||
-      socket.data.role === 'safety'
-    )
+      return (
+        socket.data.role === 'receptionist' ||
+        socket.data.role === 'safety' ||
+        socket.data.role === 'observer'
+      )
   }
 
   // =====================
