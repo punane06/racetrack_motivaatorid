@@ -363,8 +363,8 @@ button.danger {
   text-align: left;
 }
 
-.leaderboard-meta > span:first-child,
-.leaderboard-meta > span:nth-child(2) {
+.leaderboard-meta > .leaderboard-mode-label,
+.leaderboard-meta > .leaderboard-mode-flag {
   display: inline-flex;
   align-items: center;
   gap: 0.25em;
