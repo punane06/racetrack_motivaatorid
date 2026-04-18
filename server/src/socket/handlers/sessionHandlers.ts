@@ -188,7 +188,10 @@ export function registerSessionHandlers(
   // =====================
   socket.on('session:create', (label?: string, cb?: (sessions: any) => void) => {
     if (!isAuthorized()) return
-    if (raceState.status === 'running') return
+    if (raceState.status === 'running') {
+      socket.emit('operation:error', 'Cannot modify drivers or sessions during an active race')
+      return
+    }
 
     try {
       createSession(raceState, label)
@@ -205,7 +208,10 @@ export function registerSessionHandlers(
   // =====================
   socket.on('session:delete', (sessionId: string, cb?: (sessions: any) => void) => {
     if (!isAuthorized()) return
-    if (raceState.status === 'running') return
+    if (raceState.status === 'running') {
+      socket.emit('operation:error', 'Cannot modify drivers or sessions during an active race')
+      return
+    }
 
     try {
       deleteSession(raceState, sessionId)
@@ -222,7 +228,10 @@ export function registerSessionHandlers(
   // =====================
   socket.on('driver:add', ({ sessionId, name }, cb) => {
     if (!isAuthorized()) return
-    if (raceState.status === 'running') return
+    if (raceState.status === 'running') {
+      socket.emit('operation:error', 'Cannot modify drivers or sessions during an active race')
+      return
+    }
 
     try {
       addDriver(raceState, sessionId, name)
@@ -242,7 +251,10 @@ export function registerSessionHandlers(
     cb?: (sessions: any) => void
   ) => {
     if (!isAuthorized()) return
-    if (raceState.status === 'running') return
+    if (raceState.status === 'running') {
+      socket.emit('operation:error', 'Cannot modify drivers or sessions during an active race')
+      return
+    }
     try {
       editDriver(raceState, sessionId, driverId, name)
       broadcastState(io, raceState)
@@ -261,7 +273,10 @@ export function registerSessionHandlers(
     cb?: (sessions: any) => void
   ) => {
     if (!isAuthorized()) return
-    if (raceState.status === 'running') return
+    if (raceState.status === 'running') {
+      socket.emit('operation:error', 'Cannot modify drivers or sessions during an active race')
+      return
+    }
     try {
       removeDriver(raceState, sessionId, driverId)
       broadcastState(io, raceState)
@@ -279,7 +294,10 @@ export function registerSessionHandlers(
     { sessionId, driverId, carNumber }: { sessionId: string; driverId: string; carNumber: number }
   ) => {
     if (!isAuthorized()) return
-    if (raceState.status === 'running') return
+    if (raceState.status === 'running') {
+      socket.emit('operation:error', 'Cannot modify drivers or sessions during an active race')
+      return
+    }
     try {
       assignCarToDriver(raceState, sessionId, driverId, carNumber)
       broadcastState(io, raceState)

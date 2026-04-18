@@ -1,14 +1,16 @@
-  // Helper to format time as mm:ss
-  function formatTime(seconds: number | undefined) {
-    if (typeof seconds !== 'number' || Number.isNaN(seconds)) return '--:--';
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
-    return `${m}:${s.toString().padStart(2, '0')}`;
-  }
+
 import { useEffect, useState, useCallback } from 'react';
 import { useToast } from '@/lib/toast';
 import { employeeSocket } from '@/lib/socket';
 import type { RaceState } from '@shared/race';
+
+// Helper to format time as mm:ss
+function formatTime(seconds: number | undefined) {
+  if (typeof seconds !== 'number' || Number.isNaN(seconds)) return '--:--';
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}:${s.toString().padStart(2, '0')}`;
+}
 
 function getActiveSession(raceState: RaceState | null) {
   return raceState?.sessions.find(s => s.id === raceState.activeSessionId) || null;
