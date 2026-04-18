@@ -173,37 +173,39 @@ export function LeaderBoardPanel() {
         {displaySession == null ? (
           <p role="status" aria-live="polite">No active or finished session yet.</p>
         ) : (
-          <table className="leaderboard-table" aria-labelledby="leaderboard-heading">
-            <thead>
-              <tr>
-                <th scope="col">Pos</th>
-                <th scope="col">Car</th>
-                <th scope="col">Driver</th>
-                <th scope="col">Current Lap</th>
-                <th scope="col">Fastest Lap</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((row, idx) => (
-                <tr key={row.carNumber}>
-                  <td>{idx + 1}</td>
-                  <td>
-                    <span
-                      className="car-badge"
-                      style={{ backgroundColor: getCarColor(row.carNumber) }}
-                      title={`Car ${row.carNumber}`}
-                      aria-label={`Car ${row.carNumber}`}
-                    >
-                      <span aria-hidden="true">🚗</span> <span className="sr-only">Car </span>{row.carNumber}
-                    </span>
-                  </td>
-                  <td>{row.driverName}</td>
-                  <td>{row.currentLap}</td>
-                  <td>{formatLap(row.fastestLapMs)}</td>
+          <div aria-live="polite" aria-atomic="true">
+            <table className="leaderboard-table" aria-labelledby="leaderboard-heading">
+              <thead>
+                <tr>
+                  <th scope="col">Pos</th>
+                  <th scope="col">Car</th>
+                  <th scope="col">Driver</th>
+                  <th scope="col">Current Lap</th>
+                  <th scope="col">Fastest Lap</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {rows.map((row, idx) => (
+                  <tr key={row.carNumber}>
+                    <td>{idx + 1}</td>
+                    <td>
+                      <span
+                        className="car-badge"
+                        style={{ backgroundColor: getCarColor(row.carNumber) }}
+                        title={`Car ${row.carNumber}`}
+                        aria-label={`Car ${row.carNumber}`}
+                      >
+                        <span aria-hidden="true">🚗</span> <span className="sr-only">Car </span>{row.carNumber}
+                      </span>
+                    </td>
+                    <td>{row.driverName}</td>
+                    <td>{row.currentLap}</td>
+                    <td>{formatLap(row.fastestLapMs)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </section>
     )

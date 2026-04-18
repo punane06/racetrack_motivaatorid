@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
-import type { FormEvent } from 'react'
+import type React from 'react'
 
 interface DriverEditorProps {
-  mode?: 'add' | 'edit'
-  submitLabel?: string
-  initialName?: string
-  onSubmit: (name: string) => void
-  onCancel?: () => void
+  readonly mode?: 'add' | 'edit'
+  readonly submitLabel?: string
+  readonly initialName?: string
+  readonly onSubmit: (name: string) => void
+  readonly onCancel?: () => void
 }
 
 export function DriverEditor({
@@ -15,7 +15,7 @@ export function DriverEditor({
   initialName = '',
   onSubmit,
   onCancel,
-}: DriverEditorProps) {
+}: Readonly<DriverEditorProps>) {
   const [name, setName] = useState(initialName)
 
   useEffect(() => {
@@ -24,7 +24,7 @@ export function DriverEditor({
 
   const buttonLabel = submitLabel ?? (mode === 'add' ? 'Add Driver' : 'Save')
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (event: React.SyntheticEvent<HTMLFormElement>) => {
     event.preventDefault()
     const normalized = name.trim()
     if (!normalized) {

@@ -16,6 +16,7 @@ import { buildAccessKeys, socketAuthMiddleware } from './socket/auth.js'
 import { registerSessionHandlers, startRaceTimer } from './socket/handlers/sessionHandlers.js'
 import { loadPersistedState, savePersistedState } from './state/persist.js'
 import { createInitialState } from './state/store.js'
+import { checkResetRateLimit } from './rateLimit.js'
 
 // =========================
 // 1. ENV
@@ -109,11 +110,17 @@ app.get('/health', (_req, res) => {
 // =========================
 // 6. RESET
 // =========================
+
 app.post('/state/reset', (req, res) => {
   const key = req.headers['x-access-key']
+  const ip = req.ip || 'unknown'
 
   if (key !== env.receptionistKey && key !== env.safetyKey) {
     return res.status(403).json({ ok: false, message: 'Forbidden' })
+  }
+
+  if (!checkResetRateLimit(ip)) {
+    return res.status(429).json({ ok: false, message: 'Too many reset requests. Please wait before trying again.' })
   }
 
   raceState = createInitialState(env.raceDurationSeconds)

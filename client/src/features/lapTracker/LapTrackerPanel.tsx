@@ -16,11 +16,26 @@ function getActiveSession(raceState: RaceState | null) {
   return raceState?.sessions.find(s => s.id === raceState.activeSessionId) || null;
 }
 
+
 export function LapTrackerPanel() {
   const [raceState, setRaceState] = useState<RaceState | null>(null);
   const { showToast } = useToast();
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
+  // Fullscreen event listener
+  useEffect(() => {
+    const onFullscreenChange = () => setIsFullscreen(Boolean(document.fullscreenElement));
+    document.addEventListener('fullscreenchange', onFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', onFullscreenChange);
+  }, []);
 
+  const toggleFullscreen = async () => {
+    if (!document.fullscreenElement) {
+      await document.documentElement.requestFullscreen();
+      return;
+    }
+    await document.exitFullscreen();
+  };
 
   // Unified effect: fetch initial state, listen for connect and state updates
   useEffect(() => {
@@ -107,9 +122,12 @@ export function LapTrackerPanel() {
             gap: '1.5rem',
             marginTop: '2rem',
           }}
+          aria-live="polite"
+          aria-atomic="true"
         >
           {activeSession.drivers.map(driver => (
             <button
+              type="button"
               key={driver.id}
               style={{
                 minHeight: '22vh',
@@ -145,9 +163,12 @@ export function LapTrackerPanel() {
             gap: '1.5rem',
             marginTop: '2rem',
           }}
+          aria-live="polite"
+          aria-atomic="true"
         >
           {activeSession.drivers.map(driver => (
             <button
+              type="button"
               key={driver.id}
               style={{
                 minHeight: '22vh',
@@ -176,7 +197,27 @@ export function LapTrackerPanel() {
 
   return (
     <section className="panel">
-      <h2 id="laptracker-heading">Lap-line Tracker</h2>
+      <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <h2 id="laptracker-heading" style={{ margin: 0 }}>Lap-line Tracker</h2>
+        <button
+          type="button"
+          onClick={toggleFullscreen}
+          aria-label={isFullscreen ? 'Exit full screen mode' : 'Enter full screen mode'}
+          style={{
+            padding: '0.5rem 1.2rem',
+            fontSize: '1rem',
+            borderRadius: 8,
+            border: 'none',
+            background: '#2563eb',
+            color: '#fff',
+            fontWeight: 600,
+            cursor: 'pointer',
+            marginLeft: 12,
+          }}
+        >
+          {isFullscreen ? 'Exit Full Screen' : 'Full Screen'}
+        </button>
+      </header>
       {content}
     </section>
   );
