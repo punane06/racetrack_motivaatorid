@@ -126,6 +126,16 @@ export function LeaderBoardPanel() {
     return joinRows(displaySession.drivers, laps)
   }, [state, displaySession])
 
+  // Determine which flag mode to show
+  const displayMode: RaceMode = useMemo(() => {
+    if (!state) return 'danger'
+    // If race is finished and there is a last finished session, show chequered flag
+    if (!state.activeSessionId && state.lastFinishedSessionId && state.status === 'idle') {
+      return 'finish'
+    }
+    return state.mode
+  }, [state])
+
   const toggleFullscreen = async () => {
     if (!document.fullscreenElement) {
       await document.documentElement.requestFullscreen()
@@ -155,8 +165,8 @@ export function LeaderBoardPanel() {
           </button>
         </header>
         <div className="leaderboard-meta" aria-describedby="leaderboard-heading">
-          <span className="leaderboard-mode-label"><span className="sr-only">Race mode:</span> {modeLabel(state.mode)}</span>
-          <span className="leaderboard-mode-flag">{modeFlag(state.mode)}</span>
+          <span className="leaderboard-mode-label"><span className="sr-only">Race mode:</span> {modeLabel(displayMode)}</span>
+          <span className="leaderboard-mode-flag">{modeFlag(displayMode)}</span>
           <span><span className="sr-only">Time remaining:</span> {formatTime(state.timeRemainingSeconds)}</span>
           <span><span className="sr-only">Session:</span> {displaySession?.label ?? 'No session'}</span>
         </div>
