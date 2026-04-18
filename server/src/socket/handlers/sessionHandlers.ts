@@ -93,7 +93,7 @@ function startRace(io: Server, state: RaceState): boolean {
   state.activeSessionId = nextSession.id
   nextSession.status = 'active'
 
-  // 🔥 FIX: välista aktiivne session
+  // 🔥 FIX: exclude the active session from upcoming
   const nextUpcoming = state.sessions.find(
     s => s.status === 'upcoming' && s.id !== nextSession.id
   )
@@ -229,6 +229,61 @@ export function registerSessionHandlers(
       broadcastState(io, raceState)
       savePersistedState(raceState)
       if (cb) cb(raceState.sessions)
+    } catch (err) {
+      socket.emit('operation:error', err instanceof AppError ? err.message : 'Unknown error')
+    }
+  })
+
+  // =====================
+  // DRIVER EDIT
+  // =====================
+  socket.on('driver:edit', (
+    { sessionId, driverId, name }: { sessionId: string; driverId: string; name: string },
+    cb?: (sessions: any) => void
+  ) => {
+    if (!isAuthorized()) return
+    if (raceState.status === 'running') return
+    try {
+      editDriver(raceState, sessionId, driverId, name)
+      broadcastState(io, raceState)
+      savePersistedState(raceState)
+      if (cb) cb(raceState.sessions)
+    } catch (err) {
+      socket.emit('operation:error', err instanceof AppError ? err.message : 'Unknown error')
+    }
+  })
+
+  // =====================
+  // DRIVER REMOVE
+  // =====================
+  socket.on('driver:remove', (
+    { sessionId, driverId }: { sessionId: string; driverId: string },
+    cb?: (sessions: any) => void
+  ) => {
+    if (!isAuthorized()) return
+    if (raceState.status === 'running') return
+    try {
+      removeDriver(raceState, sessionId, driverId)
+      broadcastState(io, raceState)
+      savePersistedState(raceState)
+      if (cb) cb(raceState.sessions)
+    } catch (err) {
+      socket.emit('operation:error', err instanceof AppError ? err.message : 'Unknown error')
+    }
+  })
+
+  // =====================
+  // DRIVER ASSIGN CAR
+  // =====================
+  socket.on('driver:assign_car', (
+    { sessionId, driverId, carNumber }: { sessionId: string; driverId: string; carNumber: number }
+  ) => {
+    if (!isAuthorized()) return
+    if (raceState.status === 'running') return
+    try {
+      assignCarToDriver(raceState, sessionId, driverId, carNumber)
+      broadcastState(io, raceState)
+      savePersistedState(raceState)
     } catch (err) {
       socket.emit('operation:error', err instanceof AppError ? err.message : 'Unknown error')
     }
