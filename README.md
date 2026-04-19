@@ -251,7 +251,7 @@ npx vitest run
 > Always run tests from the correct working directory (client or server). If you run tests from the wrong folder, Vitest will not find the test files and tests will not work.
 
 ## Manual testing
-- **TODO:** Manual testing must be performed after the last code changes! All UI flows, role-based access, and edge cases (reconnect, state resume, finish mode) must be checked manually.
+- Manual testing must be performed after the last code changes! All UI flows, role-based access, and edge cases (reconnect, state resume, finish mode) must be checked manually.
 
 ---
 
