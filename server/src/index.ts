@@ -36,7 +36,7 @@ try {
 // =========================
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
-const clientDistPath = resolve(__dirname, '../../client/dist')
+const clientDistPath = resolve(__dirname, '../../../../client/dist')
 
 // =========================
 // 3. EXPRESS
@@ -89,11 +89,14 @@ if (raceState.status === 'running' && raceState.startedAt) {
     raceState.mode = 'finish'
   }
 }
+// FIX: Save restored state immediately
+savePersistedState(raceState)
 
 // autosave
+// FIX: Faster autosave to prevent data loss
 setInterval(() => {
   savePersistedState(raceState)
-}, 2000)
+}, 250)
 
 // =========================
 // 5. HEALTH

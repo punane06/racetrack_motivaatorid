@@ -19,6 +19,13 @@ export default defineConfig({
     // EI LUBA PORTI VAHETADA
     strictPort: true,
 
+    // FIX for Decline #3 — allow external tunnels
+    allowedHosts: [
+      'localhost',
+      '.ngrok-free.app',
+      '.trycloudflare.com'
+    ],
+
     proxy: {
       '/socket.io': {
         target: 'http://localhost:3000',

@@ -49,6 +49,10 @@ export function startRaceTimer(io: Server, state: RaceState) {
       emitLeaderboard(io, state)
     }
 
+    // FIX: Save state every second during countdown
+    savePersistedState(state)
+
+
     if (state.timeRemainingSeconds <= 0) {
       if (raceInterval) {
         clearInterval(raceInterval)
