@@ -319,6 +319,8 @@ ngrok http 3000
 
 Use the machine’s IP address to access from mobile devices.
 
+For production builds, the client is served by the Node.js server from client/dist.
+
 ---
 
 # 13. Summary

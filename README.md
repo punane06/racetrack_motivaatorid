@@ -204,29 +204,35 @@ This launches:
 
 # 6. Production-like Run
 
-Build all workspaces:
+To run the system in production mode:
 
-```bash
-npm run build
-```
-
-Start the server:
 
 ```bash
 npm start
+``` 
+
+Note:  
+npm start now automatically builds all workspaces (shared, server, client).
+You do not need to run npm run build manually.
+
+The server will start on port 3000 and will serve the built client from client/dist.
+
+### Client build path (server → client)
+
+The server serves the built client from:
+
+client/dist
+
+Because the server is compiled to:
+
+server/dist/server/src/index.js
+
+the production path is resolved relative to the compiled output:
+
+```ts
+const clientDistPath = resolve(__dirname, '../../../../client/dist')
 ```
-
-The client is served from the built `dist` folder.
-
----
-
-
----
-
-
-
-
-
+This ensures the correct index.html is served in production.
 
 # 8. Testing
 
@@ -452,6 +458,25 @@ To make the interfaces available on other devices or networks:
 
 Use the generated URLs to access the system externally.
 
+### Vite external host configuration
+
+To allow external devices to access the client UI through tunnels (ngrok, Cloudflare Tunnel),
+Vite must explicitly allow these hostnames.
+
+Add this to `client/vite.config.js`:
+
+```js
+server: {
+  host: true,
+  strictPort: true,
+  allowedHosts: [
+    'localhost',
+    '.ngrok-free.app',
+    '.trycloudflare.com'
+  ]
+}
+``` 
+This ensures that all interfaces load correctly on phones, tablets, and external networks.
 ---
 
 # 15. FAQ

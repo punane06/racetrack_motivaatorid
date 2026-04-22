@@ -1,9 +1,10 @@
-.leaderboard-meta .leaderboard-mode-flag > span {
+.leaderboard-meta .leaderboard-mode-flag>span {
   margin-left: -0.1em;
   margin-right: 0.5em;
   padding-left: 0;
   padding-right: 16px;
 }
+
 /* Navigation menu styles */
 .nav-menu {
   display: flex;
@@ -14,6 +15,7 @@
   border-bottom: 1px solid #e2e8f0;
   margin-bottom: 0.25rem;
 }
+
 .nav-link {
   color: #1e293b;
   text-decoration: none;
@@ -23,10 +25,13 @@
   border-radius: 6px;
   transition: background 0.15s, color 0.15s;
 }
-.nav-link.active, .nav-link:hover {
+
+.nav-link.active,
+.nav-link:hover {
   background: #2563eb;
   color: #fff;
 }
+
 .driver-name {
   min-width: 120px;
   max-width: 100%;
@@ -43,37 +48,45 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
 /* Hide race-flags-header in fullscreen mode */
 @media (display-mode: fullscreen) {
   .race-flags-header {
     display: none !important;
   }
 }
+
 /* Confirm dialog styles */
 .confirm-backdrop {
   position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.25);
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.25);
   z-index: 10000;
   display: flex;
   align-items: center;
   justify-content: center;
 }
+
 .confirm-dialog {
   background: #fff;
   padding: 28px 32px 20px 32px;
   border-radius: 8px;
-  box-shadow: 0 2px 16px rgba(0,0,0,0.18);
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.18);
   min-width: 280px;
   max-width: 90vw;
   text-align: center;
 }
+
 .confirm-actions {
   margin-top: 18px;
   display: flex;
   gap: 16px;
   justify-content: center;
 }
+
 .confirm-actions button {
   min-width: 70px;
   padding: 6px 18px;
@@ -85,13 +98,16 @@
   cursor: pointer;
   transition: background 0.15s;
 }
+
 .confirm-actions button:last-child {
   background: #eee;
   color: #222;
 }
+
 .confirm-actions button:focus {
   outline: 2px solid #1976d2;
 }
+
 /* Toast styles */
 .toast-container {
   position: fixed;
@@ -102,28 +118,41 @@
   flex-direction: column;
   gap: 12px;
 }
+
 .toast {
   min-width: 220px;
   padding: 12px 20px;
   border-radius: 6px;
   color: #fff;
   font-weight: 500;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
   animation: fadein 0.2s;
 }
+
 .toast-info {
   background: #1976d2;
 }
+
 .toast-success {
   background: #43a047;
 }
+
 .toast-error {
   background: #d32f2f;
 }
+
 @keyframes fadein {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
+
 /* Accessibility: global focus-visible outline */
 :focus-visible {
   outline: 3px solid #2563eb;
@@ -132,6 +161,7 @@
   box-shadow: 0 0 0 3px #e0e7ff;
   transition: outline 0.1s, box-shadow 0.1s;
 }
+
 /* Visually hidden utility for accessibility */
 .sr-only {
   position: absolute;
@@ -144,6 +174,7 @@
   white-space: nowrap;
   border: 0;
 }
+
 :root {
   color: #172338;
   background: #f2f6f9;
@@ -326,6 +357,7 @@ button.danger {
 }
 
 @media (max-width: 700px) {
+
   .session-create-form,
   .driver-editor {
     grid-template-columns: 1fr;
@@ -363,8 +395,8 @@ button.danger {
   text-align: left;
 }
 
-.leaderboard-meta > .leaderboard-mode-label,
-.leaderboard-meta > .leaderboard-mode-flag {
+.leaderboard-meta>.leaderboard-mode-label,
+.leaderboard-meta>.leaderboard-mode-flag {
   display: inline-flex;
   align-items: center;
   gap: 0.25em;
@@ -390,7 +422,8 @@ button.danger {
   margin: 0.75rem 0;
   padding: 0.9rem 1rem;
   border-radius: 0.5rem;
-  background: #e6b800; /* improved contrast yellow */
+  background: #e6b800;
+  /* improved contrast yellow */
   color: #222;
   font-weight: 800;
   font-size: clamp(1rem, 2vw, 1.4rem);
@@ -435,7 +468,8 @@ button.danger {
 }
 
 .flag-hazard {
-  background: #e6b800; /* improved contrast yellow */
+  background: #e6b800;
+  /* improved contrast yellow */
 }
 
 .flag-danger {
@@ -450,6 +484,7 @@ button.danger {
     linear-gradient(-45deg, transparent 75%, #000 75%) -20px 0 / 40px 40px,
     #fff;
 }
+
 .car-badge {
   display: inline-flex;
   align-items: center;
@@ -463,6 +498,7 @@ button.danger {
   line-height: 1;
   box-shadow: inset 0 -2px 0 rgb(0 0 0 / 15%);
 }
+
 .actions-dropdown {
   position: relative;
 }
@@ -495,4 +531,17 @@ button.danger {
 
 .actions-menu button {
   width: 100%;
+}
+
+/* Disabled button visual state (fix for Decline #1) */
+button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  background-color: #d1d5db;
+  /* gray-300 */
+  color: #6b7280;
+  /* gray-500 */
+  border-color: #9ca3af;
+  /* gray-400 */
+  box-shadow: none;
 }
