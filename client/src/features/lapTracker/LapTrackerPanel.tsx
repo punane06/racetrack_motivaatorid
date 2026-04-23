@@ -96,9 +96,11 @@ export function LapTrackerPanel() {
     };
   }, [showToast]);
 
+  const isRaceActive = raceState?.status === 'running' && (raceState?.timeRemainingSeconds ?? 1) > 0;
   const handleLap = useCallback((carNumber: number) => {
+    if (!isRaceActive) return;
     employeeSocket.emit('lap-recorded', carNumber);
-  }, []);
+  }, [isRaceActive]);
 
   let content = null;
   if (!raceState) {
@@ -107,7 +109,8 @@ export function LapTrackerPanel() {
     content = <p className="muted" role="status" aria-live="polite">Race session ended</p>;
   } else if (raceState.status === 'idle') {
     content = <p className="muted" role="status" aria-live="polite">Waiting for race to start</p>;
-  } else if ((status === 'running' || (status === 'finished' && raceState?.mode === 'finish')) && activeSession) {
+  } else if (activeSession && (status === 'running' || status === 'finished')) {
+    const isDisabled = status === 'finished' || (status === 'running' && (raceState.timeRemainingSeconds ?? 1) <= 0);
     content = (
       <>
         <div style={{ textAlign: 'center', marginBottom: 12 }}>
@@ -136,7 +139,8 @@ export function LapTrackerPanel() {
                 borderRadius: 16,
                 border: '2px solid #d4dbe5',
                 background: '#f7fafc',
-                cursor: 'pointer',
+                opacity: isDisabled ? 0.4 : 1,
+                cursor: isDisabled ? 'not-allowed' : 'pointer',
                 boxShadow: '0 2px 8px rgba(16,24,40,0.07)',
                 transition: 'background 0.2s',
                 display: 'flex',
@@ -144,53 +148,17 @@ export function LapTrackerPanel() {
                 justifyContent: 'center',
                 userSelect: 'none',
               }}
-              onClick={() => handleLap(driver.carNumber)}
+              onClick={() => !isDisabled && handleLap(driver.carNumber)}
               aria-label={`Record lap for car ${driver.carNumber}`}
+              disabled={isDisabled}
             >
               <span className="sr-only">Record lap for car </span>{driver.carNumber}
             </button>
           ))}
         </div>
-      </>
-    );
-  } else if (status === 'finished' && activeSession) {
-    content = (
-      <>
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: `repeat(${columns}, 1fr)`,
-            gap: '1.5rem',
-            marginTop: '2rem',
-          }}
-          aria-live="polite"
-          aria-atomic="true"
-        >
-          {activeSession.drivers.map(driver => (
-            <button
-              type="button"
-              key={driver.id}
-              style={{
-                minHeight: '22vh',
-                fontSize: '2.2rem',
-                fontWeight: 700,
-                borderRadius: 16,
-                border: '2px solid #d4dbe5',
-                background: '#f7fafc',
-                opacity: 0.4,
-                cursor: 'not-allowed',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                userSelect: 'none',
-              }}
-              disabled
-            >
-              Car {driver.carNumber}
-            </button>
-          ))}
-        </div>
-        <p className="muted" style={{ marginTop: 24 }} role="status" aria-live="polite">Race finished</p>
+        {isDisabled && (
+          <p className="muted" style={{ marginTop: 24 }} role="status" aria-live="polite">Race finished</p>
+        )}
       </>
     );
   }
