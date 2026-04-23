@@ -23,6 +23,7 @@ export default defineConfig({
     allowedHosts: [
       'localhost',
       '.ngrok-free.app',
+      '.ngrok-free.dev',
       '.trycloudflare.com'
     ],
 

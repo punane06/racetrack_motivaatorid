@@ -187,6 +187,7 @@ npm install
 ```
 
 
+
 # 5. Development
 
 Start both server and client in watch mode:
@@ -199,6 +200,18 @@ This launches:
 
 - the server (TypeScript watch mode),
 - the client (Vite dev server).
+
+---
+
+## External access (ngrok)
+
+To open the app on your phone or another network:
+
+1. Start the client: `npm run dev`
+2. In a new terminal: `npx ngrok http 5173`
+3. Open the generated https://...ngrok-free.dev link on your device.
+
+Make sure `.ngrok-free.dev` is in `allowedHosts` in `client/vite.config.ts`.
 
 ---
 
