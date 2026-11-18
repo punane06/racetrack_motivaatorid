@@ -11,6 +11,9 @@ Deliver a robust racetrack MVP:
 - Server: single source of truth, state persists across restarts
 - Shared: TypeScript contracts for all events/state
 
+## My role
+I was the team lead in a team of four beginners. I made the plan, split the work into tasks and set up the task board. Everyone chose the part they wanted to build. I put the parts together, added shared TypeScript event types for client and server, and fixed the reconnect flow so the screens get the correct race state back.
+
 ---
 
 ## Workspace Structure
